@@ -1,0 +1,297 @@
+<!-- /var/www/jm_viewer/templates/ply_viewer.html (最终修复版 - 与JS完全匹配) -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D高斯泼溅查看器 - 马的个人博客</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* 您的所有美化CSS保持不变 */
+        body { margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; }
+        .navbar { position: relative; flex-shrink: 0; z-index: 1000; }
+        main { flex-grow: 1; display: flex; overflow: hidden; position: relative; }
+        .sidebar { width: 300px; padding: 20px; background-color: #ffffff; border-right: 1px solid #e0e0e0; overflow-y: auto; flex-shrink: 0; transition: transform 0.3s ease-in-out, box-shadow 0.3s; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
+        .sidebar h2 { font-size: 1.5rem; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #dee2e6; padding-bottom: 10px; color: #333; }
+        .sidebar h3 { font-size: 1.1rem; margin-top: 0; margin-bottom: 10px; color: #444; }
+        .sidebar .form-group { margin-bottom: 1.5rem; }
+        .sidebar label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #555; font-size: 0.9rem; }
+        .sidebar p { font-size: 0.85rem; color: #666; line-height: 1.5; margin-top: 5px; }
+        .sidebar hr { border: 0; border-top: 1px solid #eee; margin: 25px 0; }
+        .sidebar input[type="file"], .sidebar select { width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #f8f9fa; }
+        #viewer-container { flex-grow: 1; position: relative; background-color: #e9ecef; }
+        #viewer-container canvas { width: 100% !important; height: 100% !important; display: block; }
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 20; backdrop-filter: blur(4px); }
+        .loading-text { font-size: 1.2rem; margin-bottom: 20px; color: #333; }
+        .progress-bar { width: 60%; max-width: 400px; height: 20px; background-color: #e0e0e0; border-radius: 10px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+        .progress-bar-inner { width: 0%; height: 100%; background: linear-gradient(45deg, var(--primary-color-start, #007bff), var(--primary-color-end, #6f42c1)); transition: width 0.2s ease-out; }
+        #sidebar-toggle { display: none; position: absolute; top: 15px; left: 15px; z-index: 1001; width: 40px; height: 40px; background-color: rgba(255, 255, 255, 0.9); border: 1px solid #ccc; border-radius: 50%; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; transition: transform 0.2s; }
+        #sidebar-toggle:hover { transform: scale(1.1); }
+        * ★★★ 新增：操作提示的样式 ★★★ */
+        .controls-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 10;
+            font-size: 0.9rem;
+            opacity: 0;
+            pointer-events: none; /* 穿透鼠标事件，不影响操作 */
+            transition: opacity 0.5s ease-in-out;
+            white-space: nowrap; /* 防止文字换行 */
+        }
+
+        .controls-hint.visible {
+            opacity: 1;
+        }
+        @media (max-width: 768px) {
+            #sidebar-toggle { display: flex; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100%; z-index: 1000; transform: translateX(-100%); box-shadow: 5px 0 15px rgba(0,0,0,0.1); }
+            .sidebar.open { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <div class="container">
+            <a href="{{ url_for('index_page') }}" class="logo" aria-label="马的个人博客 - 首页">
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs><linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#007bff;"/><stop offset="100%" style="stop-color:#6f42c1;"/></linearGradient></defs>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 90L25 20L50 60L75 20L100 90H80L50 45L20 90H0Z" fill="url(#logo-gradient)"/></svg>
+                <span class="logo-text">马的个人博客</span>
+            </a>
+            <nav>
+                <ul>
+                    <!-- ★★★ 核心修正：全部使用 url_for() ★★★ -->
+                    <li><a href="{{ url_for('index_page') }}" >首页</a></li>
+            
+                    <li><a href="{{ url_for('guestbook_page') }}">留言板</a></li>
+                    <li><a href="{{ url_for('urls_page') }}">网址大全</a></li>
+                    <!-- 使用我们刚才在 app.py 中统一的函数名 -->
+                    <li><a href="{{ url_for('hybrid_creator_page') }}">图片隐写</a></li>
+                    <li><a href="{{ url_for('ply_viewer_page') }}"class="active">3D查看器</a></li
+                    <li><a href="{{ url_for('file_vault_page') }}">文件保险箱</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <button id="sidebar-toggle" aria-label="Toggle sidebar">
+            <!-- ★★★ 修复了viewBox属性的SVG ★★★ -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="sidebar">
+            <h2>3D图片选择</h2>
+            <div class="form-group">
+                <h3>官方示例图片</h3>
+                <select id="server_model_select">
+                    {% if not server_models %}
+                        <option value="" disabled selected>无可用模型</option>
+                    {% else %}
+                        {% for model_file in server_models %}
+                            <option value="{{ url_for('static', filename='models/' + model_file) }}">{{ model_file }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <hr>
+            <div class="form-group">
+                <h3>自定义图片</h3>
+                <input type="file" id="file_input" accept=".ply,.splat">
+                <p>支持高斯泼溅格式的 `.ply` 和 `.splat` 文件。</p>
+                <p>提示：支持图片旋转，平移，缩放</p>
+                <p>提示：加载需要一段时间，请耐心等待</p>
+            </div>
+        </div>
+        
+        <!-- ★★★ 这是JS需要的核心容器 ★★★ -->
+        <div id="viewer-container">
+            <!-- ★★★ 请仔细检查这个块是否存在，并且ID完全正确 ★★★ -->
+            <div class="loading-overlay" id="loading-overlay">
+                <p class="loading-text" id="loading-text">正在加载模型...</p>
+                <div class="progress-bar">
+                    <div class="progress-bar-inner" id="progress-bar-inner"></div>
+                </div>
+            </div>
+
+            <!-- ★★★ 也请检查这个块是否存在，并且ID完全正确 ★★★ -->
+            <div id="controls-hint" class="controls-hint">
+                <p>提示：按住鼠标左键旋转，右键平移，滚轮缩放</p>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        {% if server_models %}
+            window.DEFAULT_MODEL_URL = "{{ url_for('static', filename='models/' + server_models[0]) }}";
+        {% else %}
+            window.DEFAULT_MODEL_URL = null; 
+        {% endif %}
+    </script>
+    
+    <!-- 1. 首先加载核心库 (移除了 defer) -->
+    <script src="{{ url_for('static', filename='js/gsplat-bundle.js') }}"></script>
+
+    <script>
+    window.addEventListener('load', () => {
+        // 确认 Gsplat 库已成功加载
+        if (typeof Gsplat === 'undefined') {
+            console.error("Gsplat library failed to load. Check the path and file integrity.");
+            const loadingText = document.getElementById('loading-text');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingText) loadingText.textContent = "错误：核心3D库加载失败！";
+            if (loadingOverlay) loadingOverlay.style.display = 'flex';
+            return;
+        }
+
+        // 获取所有需要的HTML元素
+        const viewerContainer = document.getElementById('viewer-container');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
+        const progressBarInner = document.getElementById('progress-bar-inner');
+        const controlsHint = document.getElementById('controls-hint');
+        const serverModelSelect = document.getElementById('server_model_select');
+        const fileInput = document.getElementById('file_input');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebar = document.querySelector('.sidebar');
+
+        // 创建 Canvas 和 3D 场景
+        const canvas = document.createElement('canvas');
+        viewerContainer.appendChild(canvas);
+        const renderer = new Gsplat.WebGLRenderer(canvas);
+        const scene = new Gsplat.Scene();
+        const camera = new Gsplat.Camera();
+        const controls = new Gsplat.OrbitControls(camera, canvas);
+
+        // ★★★ 新增：页面加载时立即显示操作提示 (来自小脚本的功能) ★★★
+        if (controlsHint) {
+            setTimeout(() => {
+                controlsHint.classList.add('visible');
+            }, 500);
+            setTimeout(() => {
+                controlsHint.classList.remove('visible');
+            }, 5500);
+        }
+
+        // 核心加载函数：负责显示加载动画、加载模型、隐藏动画
+        const loadModel = async (url) => {
+            // 每次开始加载时，都显示带进度条的加载动画
+            loadingText.textContent = '正在加载...';
+            progressBarInner.style.width = '0%';
+            loadingOverlay.style.display = 'flex';
+
+            try {
+                // 使用 Loader 加载模型，并更新进度条
+                await Gsplat.Loader.LoadAsync(url, scene, (progress) => {
+                    progressBarInner.style.width = `${progress * 100}%`;
+                });
+
+                // 加载成功后，隐藏加载动画
+                loadingOverlay.style.display = 'none';
+
+            } catch (error) {
+                console.error('Failed to load model:', error);
+                loadingText.textContent = '加载失败！请检查文件格式。';
+                // 3秒后隐藏失败提示
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                }, 3000);
+            }
+        };
+
+        // 动画循环
+        const animate = () => {
+            controls.update();
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        };
+        animate();
+
+        // 绑定所有事件
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        serverModelSelect.addEventListener('change', (e) => {
+            loadModel(e.target.value);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                loadModel(url);
+            }
+        });
+
+        // 页面初始化：加载默认模型
+        if (window.DEFAULT_MODEL_URL) {
+            loadModel(window.DEFAULT_MODEL_URL);
+        } else {
+            loadingText.textContent = '请从侧边栏选择一个模型';
+            loadingOverlay.style.display = 'flex';
+        }
+    });
+</script>
+</script>
+<!-- ★★★ 新增的、独立的友好提示脚本 ★★★ -->
+<script>
+    // 使用 DOMContentLoaded 以便提示能尽快出现，无需等待所有图片和资源
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // --- 1. 页面加载时，显示操作提示 ---
+        const controlsHint = document.getElementById('controls-hint');
+        if (controlsHint) {
+            // 延迟半秒显示，避免页面刚加载时过于突兀
+            setTimeout(() => {
+                // 直接使用您CSS中已定义的 .visible 类来触发过渡效果
+                controlsHint.classList.add('visible'); 
+            }, 500);
+
+            // 提示显示5秒后自动消失
+            setTimeout(() => {
+                controlsHint.classList.remove('visible');
+            }, 5500); // 500ms延迟 + 5000ms显示 = 5.5秒
+        }
+
+        // --- 2. 每次用户触发加载时，显示一个快速的“加载中”提示 ---
+        // 这个提示与您GSplat的真实加载进度无关，仅作为一个即时反馈
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const serverModelSelect = document.getElementById('server_model_select');
+        const fileInput = document.getElementById('file_input');
+        
+        const showQuickLoadingHint = () => {
+            if (loadingOverlay) {
+                // 显示覆盖层
+                loadingOverlay.style.display = 'flex';
+                
+                // 仅显示0.5秒后就消失
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                }, 1000); // 500毫秒 = 0.5秒
+            }
+        };
+        
+        // 将这个快速提示绑定到用户的操作上
+        if (serverModelSelect) {
+            serverModelSelect.addEventListener('change', showQuickLoadingHint);
+        }
+        if (fileInput) {
+            fileInput.addEventListener('change', showQuickLoadingHint);
+        }
+        
+        // 页面首次加载时，如果判断有默认模型，也触发一次快速提示
+        if (window.DEFAULT_MODEL_URL) {
+            showQuickLoadingHint();
+        }
+    });
+</script>
+
+</body>
+</html>

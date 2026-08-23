@@ -1,0 +1,93 @@
+{% set default_gender = muscle_default_gender | default('male') %}
+{% set default_side = muscle_default_side | default('front') %}
+{% set show_gender_toggle = muscle_show_gender_toggle if muscle_show_gender_toggle is defined else True %}
+{% set show_side_toggle = muscle_show_side_toggle if muscle_show_side_toggle is defined else True %}
+{% set toolbar_visible = show_gender_toggle or show_side_toggle %}
+
+<div class="muscle-highlighter"
+     data-default-gender="{{ default_gender }}"
+     data-default-side="{{ default_side }}"
+     data-lock-gender="{{ 'true' if not show_gender_toggle else 'false' }}"
+     data-lock-side="{{ 'true' if not show_side_toggle else 'false' }}">
+  {% if toolbar_visible %}
+  <div class="muscle-highlighter__toolbar">
+    {% if show_gender_toggle %}
+    <div class="muscle-toggle" role="group" aria-label="选择性别">
+      <button type="button" class="muscle-toggle__btn is-active" data-gender="male">男性</button>
+      <button type="button" class="muscle-toggle__btn" data-gender="female">女性</button>
+    </div>
+    {% endif %}
+    {% if show_side_toggle %}
+    <div class="muscle-toggle" role="group" aria-label="切换视角">
+      <button type="button" class="muscle-toggle__btn is-active" data-side="front">正面</button>
+      <button type="button" class="muscle-toggle__btn" data-side="back">背面</button>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="muscle-highlighter__canvas">
+    <svg class="muscle-highlighter__svg" role="img" aria-label="人体肌肉示意图" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+</div>
+
+<style>
+  .muscle-highlighter {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .muscle-highlighter__toolbar {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .muscle-toggle {
+    display: inline-flex;
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: 999px;
+    gap: 4px;
+  }
+  .muscle-toggle__btn {
+    border: none;
+    background: transparent;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .muscle-toggle__btn.is-active {
+    background: linear-gradient(135deg, #007bff, #6f42c1);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(111, 66, 193, 0.35);
+  }
+  .muscle-highlighter__canvas {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 280px;
+  }
+  .muscle-highlighter__svg {
+    width: 100%;
+    height: 100%;
+    max-width: 320px;
+    filter: drop-shadow(0px 8px 16px rgba(0, 0, 0, 0.08));
+  }
+  .muscle-region {
+    fill: #e5e7eb;
+    stroke: #b0b5c1;
+    stroke-width: 1;
+    transition: fill 0.2s ease, opacity 0.2s ease;
+    opacity: 0.9;
+  }
+  .muscle-region.is-active {
+    opacity: 1;
+  }
+</style>

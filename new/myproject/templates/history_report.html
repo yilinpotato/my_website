@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}AI智能报告 - AI运动评估{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style_v2.css') }}">
+<style>
+    .report-page {
+        padding: 40px 0;
+        background: var(--bg-color, #f8f9fa);
+    }
+    .report-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 32px;
+        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.12);
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .report-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        font-size: 0.95rem;
+        color: #6c757d;
+        margin-bottom: 20px;
+    }
+    .report-body {
+        white-space: pre-wrap;
+        line-height: 1.75;
+        font-size: 1rem;
+        color: #1f2933;
+    }
+    .report-actions {
+        margin-top: 24px;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    .report-actions a {
+        padding: 10px 18px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .report-actions .btn-primary {
+        background: var(--gradient, linear-gradient(135deg, #0d6efd, #6f42c1));
+        color: #fff;
+    }
+    .report-actions .btn-secondary {
+        background: #e9ecef;
+        color: #333;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="report-page">
+    <div class="container">
+        <div class="report-card">
+            <h1 style="margin-bottom: 10px;">AI 智能分析报告</h1>
+            <p style="color: #6c757d; margin-bottom: 20px;">范围：{{ range_label }}</p>
+            <div class="report-meta">
+                <span>生成时间：{{ generated_at }}</span>
+                <span>用户：{{ current_user.username }}</span>
+            </div>
+            <article class="report-body">{{ report_content | replace('\n', '<br>') | safe }}</article>
+            <div class="report-actions">
+                <a class="btn-primary" href="{{ url_for('generate_report', range=range_type) }}">下载 Markdown 版本</a>
+                <a class="btn-secondary" href="{{ url_for('history_page', range=range_type) }}">返回历史记录</a>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

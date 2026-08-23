@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网站导航</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            margin-bottom: 50px;
+        }
+
+        .cards {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 350px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+        }
+
+        .card-new .card-icon {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .card-old .card-icon {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .card p {
+            color: #666;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .card .tag {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+
+        .card-new .tag {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .card-old .tag {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .card-jm .card-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card-jm .tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .footer {
+            margin-top: 60px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .card {
+                width: 100%;
+                max-width: 350px;
+            }
+
+            .cards {
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 欢迎访问我的网站</h1>
+        <p class="subtitle">请选择您要访问的站点</p>
+        
+        <div class="cards">
+            <a href="/new/" class="card card-new" id="link-new">
+                <div class="card-icon">🤖</div>
+                <h2>AI 运动评估系统</h2>
+                <p>基于人工智能的运动姿态分析与评估平台，帮助您科学健身、精准训练。</p>
+                <span class="tag">项目1</span>
+            </a>
+            
+            <a href="/old/" class="card card-old" id="link-old">
+                <div class="card-icon">📦</div>
+                <h2>我的个人网站</h2>
+                <p>稳定可靠的经典版本，包含丰富的功能与内容。</p>
+                <span class="tag">我的网站</span>
+            </a>
+            <a href="/jm/" class="card card-jm" id="link-jm">
+                <div class="card-icon">📚</div>
+                <h2>JM漫画查看器</h2>
+                <p>支持QQ机器人查询，快速预览漫画内容，在线阅读完整章节。</p>
+                <span class="tag">QQ机器人</span>
+            </a>        </div>
+        
+        <p class="footer">© 2026 My Website. All rights reserved.</p>
+    </div>
+    <script>
+        (function () {
+            const host = window.location.hostname;
+            const isLocal = host === '127.0.0.1' || host === 'localhost';
+            if (!isLocal) return;
+            const newLink = document.getElementById('link-new');
+            const oldLink = document.getElementById('link-old');
+            const jmLink = document.getElementById('link-jm');
+            if (newLink) newLink.href = 'http://127.0.0.1:5001/';
+            if (oldLink) oldLink.href = 'http://127.0.0.1:5002/';
+            if (jmLink) jmLink.href = 'http://127.0.0.1:5003/';
+        })();
+    </script>
+</body>
+</html>

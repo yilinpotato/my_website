@@ -1,0 +1,286 @@
+<!-- templates/profile.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ user.username }}的个人主页 - AI运动评估{% endblock %}
+
+{% block head %}
+    <style>
+        .profile-card {
+            max-width: 800px;
+            margin: 40px auto;
+            background-color: var(--card-background-color);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .profile-header {
+            background: #ffffff;
+            padding: 60px 20px; /* Increased padding */
+            text-align: center;
+            color: #000000;
+            position: relative;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .profile-avatar {
+            width: 160px; /* Larger avatar */
+            height: 160px;
+            border-radius: 50%;
+            border: 6px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .profile-avatar:hover {
+            transform: scale(1.05) rotate(5deg);
+        }
+
+        .profile-username {
+            font-size: 4rem; /* Larger font */
+            font-weight: 900;
+            margin: 0;
+            letter-spacing: 1px;
+            color: #000000;
+        }
+        
+        .profile-id {
+            opacity: 0.6;
+            font-size: 1.1rem; /* Larger font */
+            margin-top: 10px;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .profile-body {
+            padding: 50px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            background-color: white; /* Ensure white background */
+        }
+
+        @media (max-width: 768px) {
+            .profile-body {
+                grid-template-columns: 1fr;
+                padding: 30px;
+                gap: 30px;
+            }
+        }
+
+        .info-section h3 {
+            font-size: 1.6rem; /* Larger font */
+            color: var(--text-color);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .info-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 0; /* More spacing */
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 1.2rem; /* Larger font */
+        }
+
+        .info-list li:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #000000; /* Pure black */
+            font-weight: 700; /* Bolder */
+            font-size: 1.3rem; /* Larger */
+        }
+
+        .info-value {
+            color: #000000; /* Pure black */
+            font-weight: 800; /* Extra bold */
+            font-size: 1.3rem; /* Larger */
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e9ecef; /* Thicker border */
+            border-radius: 10px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+            color: #333; /* Ensure text is dark */
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+            background-color: white;
+        }
+
+        .btn-save {
+            width: 100%;
+            padding: 12px;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-save:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="profile-card">
+        <div class="profile-header">
+            <img src="https://api.dicebear.com/8.x/identicon/svg?seed={{ user.username }}" 
+                 alt="{{ user.username }}的头像"
+                 class="profile-avatar">
+            <h1 class="profile-username">{{ user.username }}</h1>
+            <div class="profile-id">ID: {{ user.id }}</div>
+        </div>
+        
+        <div class="profile-body">
+            <!-- 左侧：基本信息展示 -->
+            <div class="info-section">
+                <h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    基本资料
+                </h3>
+                <ul class="info-list">
+                    <li>
+                        <span class="info-label">邮箱</span>
+                        <span class="info-value">{{ user.email }}</span>
+                    </li>
+                    <li>
+                        <span class="info-label">年龄</span>
+                        <span class="info-value">{{ user.age if user.age else '未设置' }} 岁</span>
+                    </li>
+                    <li>
+                        <span class="info-label">性别</span>
+                        <span class="info-value">
+                            {% if user.gender == 'male' %}男
+                            {% elif user.gender == 'female' %}女
+                            {% elif user.gender == 'other' %}其他
+                            {% else %}未设置{% endif %}
+                        </span>
+                    </li>
+                    <li>
+                        <span class="info-label">体重</span>
+                        <span class="info-value">{{ user.weight if user.weight else '未设置' }} kg</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 右侧：编辑表单 -->
+            {% if current_user.id == user.id %}
+            <div class="info-section">
+                <h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    更新信息
+                </h3>
+                
+                <button id="toggle-update-btn" type="button" style="width: 100%; padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; cursor: pointer; font-weight: 600; color: #495057; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <span>点击展开编辑</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+
+                <div id="update-form-container" style="display: none; margin-top: 20px; animation: fadeIn 0.3s ease;">
+                    <form action="{{ url_for('update_profile') }}" method="POST">
+                        <div class="form-group">
+                            <label for="age" class="form-label">年龄</label>
+                            <input type="number" id="age" name="age" value="{{ user.age or '' }}" class="form-control" placeholder="请输入年龄">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="gender" class="form-label">性别</label>
+                            <select id="gender" name="gender" class="form-control">
+                                <option value="">选择性别...</option>
+                                <option value="male" {% if user.gender == 'male' %}selected{% endif %}>男</option>
+                                <option value="female" {% if user.gender == 'female' %}selected{% endif %}>女</option>
+                                <option value="other" {% if user.gender == 'other' %}selected{% endif %}>其他</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="weight" class="form-label">体重 (kg)</label>
+                            <input type="number" id="weight" name="weight" step="0.1" value="{{ user.weight or '' }}" class="form-control" placeholder="请输入体重">
+                        </div>
+                        
+                        <button type="submit" class="btn-save">保存更改</button>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                document.getElementById('toggle-update-btn').addEventListener('click', function() {
+                    var container = document.getElementById('update-form-container');
+                    var btnText = this.querySelector('span');
+                    var icon = this.querySelector('svg');
+                    
+                    if (container.style.display === 'none') {
+                        container.style.display = 'block';
+                        btnText.textContent = '收起编辑';
+                        icon.innerHTML = '<polyline points="18 15 12 9 6 15"></polyline>';
+                        this.style.background = '#e9ecef';
+                    } else {
+                        container.style.display = 'none';
+                        btnText.textContent = '点击展开编辑';
+                        icon.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
+                        this.style.background = '#f8f9fa';
+                    }
+                });
+            </script>
+            <style>
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            </style>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

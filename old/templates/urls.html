@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>网址大全 - 马的个人博客</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="navbar">
+        <div class="container">
+            <!-- ★★★ 核心修正：使用与所有页面统一的、带SVG图标的Logo ★★★ -->
+            <a href="{{ url_for('index_page') }}" class="logo" aria-label="马的个人博客 - 首页">
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#007bff;"/><stop offset="100%" style="stop-color:#6f42c1;"/></linearGradient></defs><path fill-rule="evenodd" clip-rule="evenodd" d="M0 90L25 20L50 60L75 20L100 90H80L50 45L20 90H0Z" fill="url(#logo-gradient)"/></svg>
+                <span class="logo-text">马的个人博客</span>
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('index_page') }}" >首页</a></li>
+                    <li><a href="{{ url_for('guestbook_page') }}">留言板</a></li>
+                    <li><a href="{{ url_for('urls_page') }}"class="active">网址大全</a></li>
+                    <!-- 使用我们刚才在 app.py 中统一的函数名 -->
+                    <li><a href="{{ url_for('hybrid_creator_page') }}">图片隐写</a></li>
+                    <li><a href="{{ url_for('ply_viewer_page') }}">3D查看器</a></li>
+                    <li><a href="{{ url_for('file_vault_page') }}">文件保险箱</a></li>
+
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- 1. 复用 .page-header 样式 -->
+            <div class="page-header">
+                <h1>网址大全</h1>
+                <p>一些精选的、有趣的或有用的网站链接。</p>
+            </div>
+
+            <!-- 2. 复用 .admin-form 样式 -->
+            <form id="add-url-form" class="admin-form" style="display: none;">
+                <h3>添加新网址 (管理员)</h3>
+                <input type="text" id="new-url-title" placeholder="网站标题" required>
+                <input type="url" id="new-url-link" placeholder="网站链接 (https://...)" required>
+                <button type="submit">添加</button>
+            </form>
+
+            <!-- 3. 复用 .content-list 样式 -->
+            <ul id="url-list" class="content-list">
+                <li class="status">正在加载...</li>
+            </ul>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 马儿. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+<script>
+    // --- 全局变量 ---
+    let isAdmin = false;
+    const addUrlForm = document.getElementById('add-url-form');
+    const urlList = document.getElementById('url-list');
+
+    // --- 函数定义 ---
+
+    // 1. 检查管理员状态
+    async function checkAdminStatus() {
+        try {
+            const response = await fetch('/api/check_admin');
+            const data = await response.json();
+            if (response.ok && data.isAdmin) {
+                isAdmin = true;
+                addUrlForm.style.display = 'flex'; // 使用flex以匹配CSS
+            }
+        } catch (error) {
+            console.error('检查管理员状态失败:', error);
+        }
+    }
+
+    // 2. 获取并渲染网址列表
+    async function fetchUrls() {
+        urlList.innerHTML = '<li class="status">正在加载...</li>';
+        try {
+            const response = await fetch('/api/urls');
+            const urls = await response.json();
+            urlList.innerHTML = ''; // 清空加载提示
+            if (urls.length === 0) {
+                urlList.innerHTML = '<li class="status">暂无链接，等待管理员添加。</li>';
+                return;
+            }
+            urls.forEach(url => {
+                const li = document.createElement('li');
+                // 使用新的、统一的CSS类名
+                li.className = 'content-card url-card';
+                li.innerHTML = `
+                    <a href="${url.url}" target="_blank" rel="noopener noreferrer">
+                        <div class="url-info">
+                            <strong>${url.title}</strong>
+                            <span>${url.url}</span>
+                        </div>
+                    </a>
+                    ${isAdmin ? `<button class="delete-btn" onclick="deleteUrl(${url.id})">×</button>` : ''}
+                `;
+                urlList.appendChild(li);
+            });
+        } catch (error) {
+            urlList.innerHTML = '<li class="status error">加载网址失败，请稍后重试。</li>';
+            console.error('获取网址失败:', error);
+        }
+    }
+
+    // 3. 添加新网址 (管理员)
+    addUrlForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const titleInput = document.getElementById('new-url-title');
+        const urlInput = document.getElementById('new-url-link');
+        const title = titleInput.value.trim();
+        const url = urlInput.value.trim();
+
+        if (!title || !url) return;
+
+        try {
+            const response = await fetch('/api/urls', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ title, url })
+            });
+            if (response.ok) {
+                titleInput.value = '';
+                urlInput.value = '';
+                fetchUrls(); // 刷新列表
+            } else {
+                const errorData = await response.json();
+                alert(`添加失败: ${errorData.error || '未知错误'}`);
+            }
+        } catch (error) {
+            alert('请求失败，请检查网络。');
+        }
+    });
+
+    // 4. 删除网址 (管理员)
+    async function deleteUrl(urlId) {
+        if (!isAdmin) return;
+        if (!confirm('确定要删除这个网址吗？')) return;
+
+        try {
+            const response = await fetch(`/api/urls/${urlId}`, { method: 'DELETE' });
+            if (response.ok) {
+                fetchUrls(); // 刷新列表
+            } else {
+                alert('删除失败！');
+            }
+        } catch (error) {
+            alert('请求失败，请检查网络。');
+        }
+    }
+
+    // --- 页面加载时初始化 ---
+    document.addEventListener('DOMContentLoaded', async () => {
+        await checkAdminStatus();
+        await fetchUrls();
+    });
+</script>
+</body>
+</html>

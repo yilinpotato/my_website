@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>马的个人博客 - 首页</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+    <!-- 隐藏的 div 用于管理员彩蛋，保持不变 -->
+    <div id="admin-status-holder" data-is-admin="{{ session.get('is_admin', false) | string | lower }}" style="display: none;"></div>
+
+    <header class="navbar">
+        <div class="container">
+            <a href="{{ url_for('index_page') }}" class="logo" aria-label="马的个人博客 - 首页">
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs><linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#007bff;"/><stop offset="100%" style="stop-color:#6f42c1;"/></linearGradient></defs>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 90L25 20L50 60L75 20L100 90H80L50 45L20 90H0Z" fill="url(#logo-gradient)"/></svg>
+                <span class="logo-text">马的个人博客</span>
+            </a>
+            <nav>
+                <ul>
+
+
+                </ul>
+            </nav>
+
+<!-- ★★★ 核心修改：用户登录/注册/注销入口 (V2.0) ★★★ -->
+            <div class="user-actions">
+                {% if current_user.is_authenticated %}
+<!-- 用户已登录时显示头像和欢迎信息 -->
+                    <div class="user-profile">
+                        <!-- ★★★ 新增：管理员面板入口 ★★★ -->
+                        {% if session.get('is_admin') %}
+                        <a href="{{ url_for('admin_dashboard') }}" class="admin-panel-btn" title="管理员面板">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                              <path d="M6 1v3H1V1h5zM1 0a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1H1zm14 12v3H1v-3h14zm-1-1H1a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1zM6 8v7H1V8h5zM1 7a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1H1zm14-6v7h-5V1h5zM10 0a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1h-5z"/>
+                            </svg>
+                        </a>
+                        {% endif %}
+<!-- ★★★ 核心修改：用 a 标签包裹 img ★★★ -->
+                        <a href="{{ url_for('profile_page', username=current_user.username) }}" class="avatar-link" title="查看个人主页">
+                            <img src="https://api.dicebear.com/8.x/identicon/svg?seed={{ current_user.username }}" 
+                                 alt="用户头像" 
+                                 class="avatar">
+                        </a>
+                        <span class="welcome-msg">欢迎, {{ current_user.username }}</span>
+
+                        <!-- ★★★ 新增：仅在管理员状态下显示徽章 ★★★ -->
+                        {% if session.get('is_admin') %}
+                            <span id="admin-badge" class="admin-badge" title="点击注销管理员身份">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-shield-lock-fill" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8 0c-.81 0-1.447.255-1.96.72C5.524 1.18 5 1.73 5 2.5V3c0 .342.333.615.422.848A5.003 5.003 0 0 1 11 3c.09-.233.422-.506.422-.848V2.5c0-.77-.524-1.32-1.04-1.78C9.447.255 8.81 0 8 0zM5.5 4.134A5.5 5.5 0 0 1 8 1.5a5.5 5.5 0 0 1 2.5 4.134c-.21.137-.435.288-.67.458A4.5 4.5 0 0 0 8 4.5a4.5 4.5 0 0 0-1.83.592c-.235-.17-.46-.321-.67-.458z"/>
+                                    <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v5.5a6 6 0 0 0 7 6 6 6 0 0 0 7-6V4h-3.5z"/>
+                                </svg>
+                                管理员
+                            </span>
+                        {% endif %}
+
+                        <a href="{{ url_for('logout') }}" class="logout-btn">注销</a>
+                    </div>
+                {% else %}
+                    <!-- 用户未登录时显示登录和注册按钮 -->
+                    <a href="{{ url_for('login') }}" class="login-btn">登录</a>
+                    <a href="{{ url_for('register') }}" class="register-btn">注册</a>
+                {% endif %}
+            </div>
+
+        </div>
+    </header>
+
+    <main>
+        <!-- ... (您的 main 内容保持不变) ... -->
+        <section class="hero">
+            <div class="container">
+                <h1>欢迎来到我的数字空间</h1>
+                <p>路虽远行则将至，事虽难做则必成</p>
+            </div>
+        </section>
+        <section class="projects">
+            <div class="container">
+                <h2 class="section-title">我的工具</h2>
+                <div class="project-grid">
+                    <div class="card"><a href="{{ url_for('guestbook_page') }}"><img src="{{ url_for('static', filename='img/guestbook-cover.jpg') }}" alt="留言板封面"><div class="card-content"><h3>留言板</h3><p>一个可以畅所欲言、分享想法的互动空间。</p></div></a></div>
+                    <div class="card"><a href="{{ url_for('urls_page') }}"><img src="{{ url_for('static', filename='img/urls-cover.jpg') }}" alt="urls封面"><div class="card-content"><h3>网址大全</h3><p>记录了十分有用的网址。</p></div></a></div>    
+                    <div class="card"><a href="{{ url_for('ply_viewer_page') }}"><img src="{{ url_for('static', filename='img/3d-cover.jpg') }}" alt="3D模型查看器封面"><div class="card-content"><h3>3D模型查看器</h3><p>一个基于浏览器、轻量级的PLY模型展示工具。</p></div></a></div>
+                    <div class="card"><a href="{{ url_for('hybrid_creator_page') }}"><img src="{{ url_for('static', filename='img/hybrid-cover.jpg') }}" alt="图片隐写工具封面"><div class="card-content"><h3>图片隐写工具</h3><p>将任意文件隐藏在一张普通的图片之后。</p></div></a></div>
+                    <div class="card"><a href="{{ url_for('file_vault_page') }}"><img src="{{ url_for('static', filename='img/vault-cover.jpg') }}" alt="文件保险箱封面"><div class="card-content"><h3>文件保险箱</h3><p>一个使用密钥进行安全文件上传和下载的私密空间。</p></div></a></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 马儿. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // --- 动画效果 (不变) ---
+            const animatedElements = document.querySelectorAll('.hero h1, .hero p, .section-title, .card');
+            animatedElements.forEach((el, index) => {
+                el.classList.add('fade-in-up');
+                el.style.transitionDelay = (index * 100) + 'ms';
+            });
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            animatedElements.forEach(el => observer.observe(el));
+
+            // --- ★★★ 核心修改：管理员登录彩蛋 ★★★ ---
+            const logo = document.querySelector('.navbar .logo');
+            if (!logo) return;
+
+            const statusHolder = document.getElementById('admin-status-holder');
+            const isAdmin = statusHolder.dataset.isAdmin === 'true';
+
+            let clickCount = 0;
+            let clickTimer = null;
+
+            logo.addEventListener('click', function (event) {
+                event.preventDefault(); // 阻止默认跳转
+                clickCount++;
+                
+                if (clickCount >= 5) {
+                    clearTimeout(clickTimer);
+                    clickCount = 0;
+
+                    // 如果已是管理员，则提示注销管理员权限
+                    if (isAdmin) {
+                        if (confirm("您已是管理员。确定要注销管理员权限吗？(这不会注销您的普通用户登录)")) {
+                            window.location.href = '/admin/logout'; // 使用专门的管理员注销路由
+                        }
+                    } else {
+                        // 否则，跳转到管理员登录页面
+                        window.location.href = '/admin/login'; // 指向专门的管理员登录页
+                    }
+                    return;
+                }
+                
+                // 1.5秒内未达到5次点击，则重置计数器
+                clearTimeout(clickTimer);
+                clickTimer = setTimeout(() => {
+                    if (clickCount < 5) { // 如果时间到了且没触发彩蛋，执行默认行为
+                        window.location.href = logo.href;
+                    }
+                    clickCount = 0;
+                }, 1500);
+                
+            });
+            // ★★★ 确保这段代码存在且正确 ★★★
+            const adminBadge = document.getElementById('admin-badge');
+            if (adminBadge) {
+                adminBadge.addEventListener('click', function() {
+                    if (confirm("您当前是管理员身份。确定要注销管理员权限吗？(这不会登出您的普通用户账号)")) {
+                        window.location.href = "{{ url_for('admin_logout') }}";
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

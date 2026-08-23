@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 智能运动分析报告 Demo</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --accent-color: #ff6b6b;
+            --text-color: #333;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .report-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .report-header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .report-header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            padding: 30px;
+            margin-bottom: 25px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .score-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .score-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary-color) 82%, #eee 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .score-circle::before {
+            content: "";
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: var(--card-bg);
+            border-radius: 50%;
+        }
+
+        .score-value {
+            position: relative;
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .conclusion-text {
+            flex: 1;
+            margin-left: 30px;
+        }
+
+        .conclusion-text h2 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .highlight {
+            color: var(--accent-color);
+            font-weight: bold;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-left: 5px solid var(--primary-color);
+            padding-left: 15px;
+        }
+
+        .diagnosis-block {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .diagnosis-header {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--warning-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .diagnosis-header::before {
+            content: "⚠️";
+            margin-right: 10px;
+        }
+
+        .data-support, .improvement-plan {
+            margin-bottom: 20px;
+        }
+
+        .sub-label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 10px;
+            display: block;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        ul.data-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul.data-list li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        ul.data-list li::before {
+            content: "📊";
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-size: 0.9rem;
+        }
+
+        .plan-list {
+            counter-reset: plan-counter;
+            list-style: none;
+            padding: 0;
+        }
+
+        .plan-list li {
+            position: relative;
+            padding-left: 40px;
+            margin-bottom: 15px;
+        }
+
+        .plan-list li::before {
+            counter-increment: plan-counter;
+            content: counter(plan-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 28px;
+            height: 28px;
+            background: var(--success-color);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .plan-title {
+            font-weight: bold;
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        strong {
+            color: #2c3e50;
+        }
+        
+        @media (max-width: 600px) {
+            .score-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            .conclusion-text {
+                margin-left: 0;
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="report-header">
+        <h1>AI 智能运动分析报告</h1>
+        <p>生成时间: 2025年12月5日</p>
+    </div>
+
+    <!-- 核心结论卡片 -->
+    <div class="card">
+        <div class="score-section">
+            <div class="score-circle">
+                <div class="score-value">82</div>
+            </div>
+            <div class="conclusion-text">
+                <h2>核心结论</h2>
+                <p>本次训练平均得分为 <strong>82分</strong>。数据显示，训练质量在后半程出现明显下滑，主要问题集中于 <span class="highlight">核心稳定性下降</span> 与 <span class="highlight">左侧肢体代偿</span>。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 问题诊断卡片 -->
+    <div class="card">
+        <h2 class="section-title">一、问题诊断</h2>
+        
+        <div class="diagnosis-block">
+            <div class="diagnosis-header">核心稳定性不足</div>
+            
+            <div class="data-support">
+                <span class="sub-label">数据支撑</span>
+                <ul class="data-list">
+                    <li>共记录到 <strong>4次“塌腰”事件</strong>，全部发生在每组动作的 <strong>后50%阶段</strong>。</li>
+                    <li>后半程训练中，脊柱与大腿的角度差平均值为 <strong>15°</strong>，显著高于前半程的 <strong>6°</strong>，表明核心控制力减弱。</li>
+                </ul>
+            </div>
+
+            <div class="improvement-plan">
+                <span class="sub-label">改进方案</span>
+                <ul class="plan-list">
+                    <li>
+                        <span class="plan-title">训练前激活</span>
+                        在主训练前，执行2组、每组30秒的平板支撑，建立核心肌群的预先激活。
+                    </li>
+                    <li>
+                        <span class="plan-title">调整组内容量</span>
+                        适当减少每组的次数（例如，从12次/组降至10次/组），确保在力竭前始终保持高质量的动作形态。
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="diagnosis-block">
+            <div class="diagnosis-header">左侧肢体代偿</div>
+            
+            <div class="data-support">
+                <span class="sub-label">数据支撑</span>
+                <ul class="data-list">
+                    <li><strong>重心偏移：</strong> 推起阶段身体重心向左偏移 <strong>3.5cm</strong>，导致左侧胸大肌和三头肌负荷过大。</li>
+                    <li><strong>速度差异：</strong> 左肩上升速度（0.4m/s）显著快于右肩（0.32m/s），引起躯干在水平面发生 <strong>8° 旋转</strong>。</li>
+                    <li><strong>关节压力估算：</strong> 基于力学模型分析，左肘关节承受压力比右侧高出 <strong>25%</strong>，长期可能导致单侧关节磨损。</li>
+                </ul>
+            </div>
+
+            <div class="improvement-plan">
+                <span class="sub-label">改进方案</span>
+                <ul class="plan-list">
+                    <li>
+                        <span class="plan-title">弱侧优先强化</span>
+                        在进行推类训练（如哑铃推举）时，优先从右侧（弱侧）开始，并以右侧能完成的次数为准，逐步平衡双侧力量。
+                    </li>
+                    <li>
+                        <span class="plan-title">视觉反馈矫正</span>
+                        建议在镜子前进行俯卧撑，或在地面标记双手位置，确保中指指向正前方，视觉监控躯干无旋转。
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

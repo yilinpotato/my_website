@@ -1,0 +1,79 @@
+<!-- templates/base2.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}马的个人博客{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- =================================================== -->
+    <!--            1. 新版导航栏 (全宽 & 极简)            -->
+    <!-- =================================================== -->
+    <header class="navbar navbar-wide">
+        <!-- ★ 核心修改：容器不再限制导航栏本身，而是限制内容 -->
+        <div class="container">
+            <a href="{{ url_for('index_page') }}" class="logo" aria-label="马的个人博客 - 首页">
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logo-gradient-base2" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#007bff; stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#6f42c1; stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 90L25 20L50 60L75 20L100 90H80L50 45L20 90H0Z" fill="url(#logo-gradient-base2)"/>
+                </svg>
+                <span class="logo-text">马的个人博客</span>
+            </a>
+            <nav>
+                <ul>
+
+                </ul>
+            </nav>
+            <div class="user-actions">
+                {% if current_user.is_authenticated %}
+                    <!-- ★ 核心修改：只保留头像作为入口 -->
+                    <a href="{{ url_for('profile_page', username=current_user.username) }}" class="avatar-link-icon" title="个人中心">
+                        <img src="https://api.dicebear.com/8.x/identicon/svg?seed={{ current_user.username }}" alt="用户头像" 
+                             class="avatar {% if session.get('is_admin') %}admin-avatar{% endif %}">
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="login-btn">登录</a>
+                    <a href="{{ url_for('register') }}" class="register-btn">注册</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- =================================================== -->
+    <!--           2. 新版主要内容区域 (带居中大标题)        -->
+    <!-- =================================================== -->
+    <main>
+        <div class="page-header-modern">
+            <div class="container">
+                <!-- ★ 核心修改：居中、明显的大标题 -->
+                <h1>{% block page_title %}{% endblock %}</h1>
+            </div>
+        </div>
+        <div class="page-container-modern">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 马儿. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // 全局导航栏的 JS 逻辑 (保持不变)
+        // ... (粘贴来自 base2.html 的 JS 代码) ...
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

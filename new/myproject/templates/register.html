@@ -1,0 +1,182 @@
+<!-- templates/register.html (V2.0 - 实时用户名验证版) -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>创建新账户 - 马的个人空间</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <!-- ★ 新增：为反馈信息添加样式 -->
+    <style>
+        .feedback-message {
+            text-align: left;
+            font-size: 0.85rem;
+            margin-top: -10px; /* 向上移动一点，更贴近输入框 */
+            margin-bottom: 15px;
+            padding-left: 5px;
+            min-height: 1.2em; /* 占据固定高度，防止布局跳动 */
+        }
+        .feedback-error { color: #dc3545; font-weight: bold; }
+        .feedback-success { color: #28a745; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-container">
+            <a href="{{ url_for('index_page') }}" class="logo" aria-label="返回首页">
+                                <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#007bff;"/><stop offset="100%" style="stop-color:#6f42c1;"/></linearGradient></defs><path fill-rule="evenodd" clip-rule="evenodd" d="M0 90L25 20L50 60L75 20L100 90H80L50 45L20 90H0Z" fill="url(#logo-gradient)"/></svg>
+            </a>
+            <h1>创建新账户</h1>
+            <form id="register-form" method="POST" action="{{ url_for('register') }}">
+                <!-- ★ 修改点 1：为用户名输入框添加 id -->
+                <input type="text" id="username-input" name="username" placeholder="用户名 (3-15个字符)" required>
+                <!-- ★ 修改点 2：添加用于显示反馈信息的 p 标签 -->
+                <p id="username-feedback" class="feedback-message"></p>
+
+                <input type="email" id="email-input" name="email" placeholder="邮箱 (用于接收验证码)" required>
+                <div class="verification-code-group">
+                    <input type="text" name="code" placeholder="邮箱验证码" required>
+                    <button type="button" id="send-code-btn">发送验证码</button>
+                </div>
+                <input type="password" name="password" placeholder="密码 (至少6位)" required>
+                <input type="password" name="confirm_password" placeholder="确认密码" required>
+                <button type="submit">注 册</button>
+            </form>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <p class="login-error">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+             <p class="extra-links">
+                <a href="{{ url_for('login') }}">已有账户？去登录</a>
+            </p>
+        </div>
+    </div>
+
+
+    <script>
+        // 等待整个页面加载完毕后再执行脚本，确保能找到按钮
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            const sendCodeBtn = document.getElementById('send-code-btn');
+
+                    // ★★★ 修改点 3：新增用户名实时验证逻辑 ★★★
+        const usernameInput = document.getElementById('username-input');
+        const usernameFeedback = document.getElementById('username-feedback');
+        let debounceTimer; // 用于防抖的计时器
+
+        usernameInput.addEventListener('input', function() {
+            const username = this.value.trim();
+            usernameFeedback.textContent = ''; // 清空之前的消息
+
+            // 清除上一个计时器
+            clearTimeout(debounceTimer);
+
+            if (username.length < 3) {
+                if (username.length > 0) {
+                    usernameFeedback.textContent = '用户名至少需要3个字符';
+                    usernameFeedback.className = 'feedback-message feedback-error';
+                }
+                return;
+            }
+
+            // 设置一个新的计时器，500毫秒后执行检查
+            debounceTimer = setTimeout(() => {
+                usernameFeedback.textContent = '正在检查...';
+                usernameFeedback.className = 'feedback-message';
+
+                fetch("{{ url_for('check_username') }}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        usernameFeedback.textContent = '❌ 该用户名已被占用';
+                        usernameFeedback.className = 'feedback-message feedback-error';
+                    } else {
+                        usernameFeedback.textContent = '✔ 用户名可用';
+                        usernameFeedback.className = 'feedback-message feedback-success';
+                    }
+                })
+                .catch(error => {
+                    console.error('检查用户名时出错:', error);
+                    usernameFeedback.textContent = ''; // 网络错误时清空
+                });
+            }, 500); // 延迟500毫秒
+        });
+
+            const emailInput = document.getElementById('email-input');
+
+            // 检查按钮是否存在，如果不存在就在控制台报错，方便调试
+            if (!sendCodeBtn) {
+                console.error('错误：无法找到 ID 为 "send-code-btn" 的按钮！');
+                return;
+            }
+            if (!emailInput) {
+                console.error('错误：无法找到 ID 为 "email-input" 的输入框！');
+                return;
+            }
+
+            sendCodeBtn.addEventListener('click', function() {
+                const email = emailInput.value;
+                const btn = this;
+
+                // 简单的邮箱格式校验
+                if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+                    alert('请输入有效的邮箱地址！');
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.textContent = '发送中...';
+
+                // 使用 fetch API 发送请求到后端
+                fetch("{{ url_for('send_verification_code') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('验证码已发送，请注意查收！');
+                        let countdown = 60;
+                        btn.textContent = `重新发送(${countdown}s)`;
+                        
+                        const interval = setInterval(() => {
+                            countdown--;
+                            if (countdown > 0) {
+                                btn.textContent = `重新发送(${countdown}s)`;
+                            } else {
+                                clearInterval(interval);
+                                btn.textContent = '发送验证码';
+                                btn.disabled = false;
+                            }
+                        }, 1000);
+                    } else {
+                        // 显示后端返回的错误信息
+                        alert('发送失败: ' + data.message);
+                        btn.textContent = '发送验证码';
+                        btn.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch Error:', error);
+                    alert('请求失败，请检查网络或联系管理员。');
+                    btn.textContent = '发送验证码';
+                    btn.disabled = false;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>漫画实时查看器 - 马的个人博客</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo.svg') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 1. 导航栏现在在 wrapper 的外面，所以它一直可见 -->
+    <header class="navbar">
+        <div class="container">
+            <a href="{{ url_for('index_page') }}" class="logo" id="logo-link" aria-label="马的个人博客 - 首页">
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#007bff;"/>
+                            <stop offset="100%" style="stop-color:#6f42c1;"/>
+                        </linearGradient>
+                    </defs>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 90L25 20L50 60L75 20L100 90H80L50 45L20 90H0Z" fill="url(#logo-gradient)"/>
+                </svg>
+                <span class="logo-text">马的个人博客</span>
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('index_page') }}" >首页</a></li>
+                    <li><a href="{{ url_for('jm_viewer_page') }}"class="active">漫画查看器</a></li>
+                    <li><a href="{{ url_for('guestbook_page') }}">留言板</a></li>
+                    <li><a href="{{ url_for('urls_page') }}">网址大全</a></li>
+                    <li><a href="{{ url_for('hybrid_creator_page') }}">图片隐写</a></li>
+                    <li><a href="{{ url_for('ply_viewer_page') }}">3D查看器</a></li>
+                    <li><a href="{{ url_for('file_vault_page') }}">文件保险箱</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 2. 测验模态框 -->
+    <div id="quiz-overlay">
+        <div id="quiz-container">
+            <h1>无内鬼测验</h1>
+            <p id="quiz-progress"></p>
+            <h2 id="question-text"></h2>
+            <div id="options-container"></div>
+            <p id="feedback-text"></p>
+        </div>
+    </div>
+
+    <!-- 3. 主内容包裹器 (现在只包含 main 和 footer) -->
+    <div id="main-content-wrapper" style="display: none;">
+        <main>
+            <div class="tool-container">
+                <h1>漫画下载与查看</h1>
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="输入一个或多个ID，用空格隔开...">
+                    <button id="submit-task-button">提交下载任务</button>
+                </div>
+
+                <div id="task-queue-container" style="display: none;">
+                    <div id="current-task-display"></div>
+                    <div class="task-list-wrapper">
+                        <div class="task-list"><h3><span class="dot-pending"></span>等待队列</h3><ul id="pending-list"><li>队列为空</li></ul></div>
+                        <div class="task-list"><h3><span class="dot-completed"></span>最近完成</h3><ul id="completed-list"><li>暂无历史记录</li></ul></div>
+                    </div>
+                </div>
+
+                <div id="viewer-section" style="margin-top: 40px;">
+                    <div id="series-selector"></div>
+                    <div id="chapter-nav" style="display: none;">
+                        <button id="prev-chapter-btn">« 上一章</button>
+                        <h2 id="current-chapter-title"></h2>
+                        <button id="next-chapter-btn">下一章 »</button>
+                    </div>
+                    <div id="viewer">
+                        <button id="fullscreen-toggle" aria-label="切换全屏模式" style="display: none;">
+                            <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 2h-2v3h-3v2h5v-5zm-3-4V5h-2v5h5V7h-3z"/></svg>
+                        </button>
+                        <p class="status">从下方书架选择漫画开始阅读</p>
+                    </div>
+                    <button id="load-more-button" style="display: none;">加载更多</button>
+                </div>
+
+                <div id="cache-list-container">
+                    <h2>前辈の书架</h2>
+                    <ul id="cache-list">
+                        <li>正在加载书架...</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <p>© 2025 马儿. All Rights Reserved.</p>
+            </div>
+        </footer>
+
+    </div> <!-- id="main-content-wrapper" 的结束标签 -->
+
+
+    <button id="back-to-top-btn" title="回到顶部">↑</button>
+
+    <script src="{{ url_for('static', filename='js/global.js') }}"></script>
+    <script>
+document.addEventListener("DOMContentLoaded", function() {
+    // ========================================================================
+    // --- 测验逻辑区 (代码从这里开始) ---
+    // ========================================================================
+
+    const quizOverlay = document.getElementById('quiz-overlay');
+    const quizContainer = document.getElementById('quiz-container');
+    const mainContent = document.getElementById('main-content-wrapper');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackText = document.getElementById('feedback-text');
+    const progressText = document.getElementById('quiz-progress');
+
+    // ★★★ 你的题库 ★★★
+    // 在这里添加或修改你的问题
+    // 'answer' 是选项数组的索引（从0开始）
+    const questionBank = [
+        {
+            question: "维什戴尔的三技能——“爆裂黎明”\n有几发子弹?",
+            options: ["6", "8", "30", "799"],
+            answer: 0
+        },
+        {
+            question: "众所周知，\n在明日方舟中干员莱伊与提丰（无模组799dps）哪个更加受到博士喜爱?",
+            options: ["提丰", "莱伊", "弑君者", "缪尔塞斯"],
+            answer: 1
+        },
+        {
+            question: "明日方舟中，\n以下哪位干员属于职业分支中的“近卫?”",
+            options: ["风笛 ", "银灰", "号角", "临光"],
+            answer: 1
+        },
+        {
+            question: "众所周知，明日方舟是个什么类型的游戏?",
+            options: ["卡牌策略对战类", "开放世界类RPG", "塔防策略类RPG", "恋爱冒险类galgame"],
+            answer: 2
+        },
+        {
+            question: "明日方舟的游戏制作人是谁?",
+            options: ["海猫络合物", "海狗线粒体", "藤原千花", "宫崎英高"],
+            answer: 0
+        },
+        {
+            question: "“我们的光!”是指？",
+            options: ["玛嘉烈·临光", "玛利亚·临光", "铃兰", "THRM-EX"],
+            answer: 2
+        },
+        {
+            question: "哪一个jm漫画id是董卓？",
+            options: ["208092", "350234", "114514", "363848"],
+            answer: 1
+        },
+        {
+            question: "谁是全网最尊重《明日方舟》游戏干员强度的up主？",
+            options: ["提丰", "亚里士多德", "血狼破军", "丰川祥子"],
+            answer: 2 
+        }
+    ];
+
+    let selectedQuestions = [];
+    let currentQuestionIndex = 0;
+    const questionsToAsk = 3;
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function startQuiz() {
+        currentQuestionIndex = 0;
+        shuffleArray(questionBank);
+        selectedQuestions = questionBank.slice(0, questionsToAsk);
+        displayQuestion();
+    }
+
+    function displayQuestion() {
+        if (currentQuestionIndex >= selectedQuestions.length) {
+            passQuiz();
+            return;
+        }
+
+        const currentQuestion = selectedQuestions[currentQuestionIndex];
+        questionText.textContent = currentQuestion.question;
+        progressText.textContent = `第 ${currentQuestionIndex + 1} / ${questionsToAsk} 题`;
+        optionsContainer.innerHTML = '';
+        feedbackText.textContent = '';
+        feedbackText.className = '';
+
+        currentQuestion.options.forEach((option, index) => {
+            const button = document.createElement('button');
+            button.textContent = option;
+            button.onclick = () => checkAnswer(index);
+            optionsContainer.appendChild(button);
+        });
+    }
+
+    function checkAnswer(selectedIndex) {
+        const correctIndex = selectedQuestions[currentQuestionIndex].answer;
+        
+        const buttons = optionsContainer.getElementsByTagName('button');
+        for (let btn of buttons) {
+            btn.disabled = true;
+        }
+
+        if (selectedIndex === correctIndex) {
+            feedbackText.textContent = "回答正确！";
+            feedbackText.className = 'feedback-correct';
+            setTimeout(() => {
+                currentQuestionIndex++;
+                displayQuestion();
+            }, 1000);
+        } else {
+            feedbackText.textContent = "回答错误，测验将重置。";
+            feedbackText.className = 'feedback-incorrect';
+            quizContainer.classList.add('shake');
+            setTimeout(() => {
+                quizContainer.classList.remove('shake');
+                startQuiz(); // 答错后重新开始
+            }, 1500);
+        }
+    }
+
+    function passQuiz() {
+        feedbackText.textContent = "验证通过，欢迎！";
+        feedbackText.className = 'feedback-correct';
+        
+        quizOverlay.style.opacity = '0';
+        setTimeout(() => {
+            quizOverlay.style.display = 'none';
+            mainContent.style.display = 'block';
+            // 测验通过后，初始化你页面原有的功能
+            initializeMainPage();
+        }, 500);
+    }
+
+    // 页面加载后立即启动测验
+    startQuiz();
+
+
+    // ========================================================================
+    // --- 原有页面逻辑 (所有原始代码都在这个函数内部) ---
+    // ========================================================================
+    function initializeMainPage() {
+        // --- 元素定义区 ---
+        const searchInput = document.getElementById('search-input');
+        const submitTaskButton = document.getElementById('submit-task-button');
+        const cacheList = document.getElementById('cache-list');
+        const seriesSelector = document.getElementById('series-selector');
+        const chapterNav = document.getElementById('chapter-nav');
+        const prevChapterBtn = document.getElementById('prev-chapter-btn');
+        const nextChapterBtn = document.getElementById('next-chapter-btn');
+        const currentChapterTitle = document.getElementById('current-chapter-title');
+        const viewer = document.getElementById('viewer');
+        const loadMoreButton = document.getElementById('load-more-button');
+        const backToTopBtn = document.getElementById('back-to-top-btn');
+        const currentTaskDisplay = document.getElementById('current-task-display');
+        const pendingList = document.getElementById('pending-list');
+        const completedList = document.getElementById('completed-list');
+        const taskQueueContainer = document.getElementById('task-queue-container');
+
+        // --- 状态变量区 ---
+        let isAdmin = false;
+        let allImageUrls = [], currentIndex = 0, seriesData = [], currentChapterIndex = -1;
+        let taskStatusInterval = null;
+        const batchSize = 15;
+        let submittedTaskIds = new Set();
+        
+        // --- 函数定义区 ---
+
+        async function checkAdminStatus() {
+            try {
+                const response = await fetch('/api/check_admin');
+                const data = await response.json();
+                isAdmin = data.isAdmin || false;
+            } catch (error) {
+                console.error("检查管理员状态失败:", error);
+                isAdmin = false;
+            }
+        }
+
+        async function loadCacheList() {
+            try {
+                const response = await fetch('/api/get_cache_list');
+                const data = await response.json();
+                
+                cacheList.innerHTML = '';
+                if (data.length === 0) {
+                    cacheList.innerHTML = '<li>书架为空</li>';
+                    return;
+                }
+
+                data.forEach(album => {
+                    const li = document.createElement('li');
+                    li.setAttribute('data-dir', album.dir);
+                    li.innerHTML = `
+                        <button class="manga-item-main-btn">
+                            <span class="id-tag">${album.id}</span>
+                            <span class="title">${album.title}</span>
+                        </button>
+                        <div class="admin-actions"></div>
+                    `;
+
+                    li.querySelector('.manga-item-main-btn').onclick = () => {
+                        submittedTaskIds.clear();
+                        resetViewerState();
+                        taskQueueContainer.style.display = 'none';
+                        startViewingFromCache(album.id);
+                        window.scrollTo({ top: document.getElementById('viewer-section').offsetTop - 80, behavior: 'smooth' });
+                    };
+
+                    if (isAdmin) {
+                        const adminActionsContainer = li.querySelector('.admin-actions');
+                        adminActionsContainer.innerHTML = `
+                            <button class="admin-btn rename-btn" title="重命名">✏️</button>
+                            <button class="admin-btn delete-btn" title="删除">🗑️</button>
+                        `;
+                        adminActionsContainer.querySelector('.rename-btn').onclick = () => handleRename(album.dir);
+                        adminActionsContainer.querySelector('.delete-btn').onclick = () => handleDelete(album.dir);
+                    }
+
+                    cacheList.appendChild(li);
+                });
+            } catch (error) {
+                console.error("获取书架列表失败:", error);
+                cacheList.innerHTML = '<li>加载书架失败，请刷新页面重试</li>';
+            }
+        }
+
+        async function handleRename(oldDirName) {
+            const newDirName = prompt("请输入新的文件夹名称：", oldDirName);
+            if (newDirName && newDirName.trim() !== "" && newDirName !== oldDirName) {
+                if (!confirm(`确定要将 "${oldDirName}" 重命名为 "${newDirName}" 吗？`)) return;
+                try {
+                    const response = await fetch('/api/manga_manager', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'rename', payload: { old_dir_name: oldDirName, new_dir_name: newDirName.trim() } })
+                    });
+                    const result = await response.json();
+                    if (!response.ok || !result.success) throw new Error(result.error || '重命名失败');
+                    alert(result.message);
+                    await loadCacheList();
+                } catch (error) {
+                    alert(`重命名失败: ${error.message}`);
+                }
+            }
+        }
+
+        async function handleDelete(dirName) {
+            if (confirm(`【警告】\n确定要永久删除文件夹 "${dirName}" 吗？\n此操作不可恢复！`)) {
+                try {
+                    const response = await fetch('/api/manga_manager', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'delete', payload: { dir_name: dirName } })
+                    });
+                    const result = await response.json();
+                    if (!response.ok || !result.success) throw new Error(result.error || '删除失败');
+                    alert(result.message);
+                    await loadCacheList();
+                } catch (error) {
+                    alert(`删除失败: ${error.message}`);
+                }
+            }
+        }
+        
+        async function initializePage() {
+            await checkAdminStatus();
+            await Promise.all([ 
+                loadCacheList(),
+                fetchTaskStatus().catch(err => console.error("初始化加载任务状态失败:", err)) 
+            ]);
+            if (!taskStatusInterval) {
+                taskStatusInterval = setInterval(fetchTaskStatus, 3000);
+            }
+        }
+
+        async function submitTasks() {
+            const ids = searchInput.value.trim().split(/\s+/).filter(id => /^\d+$/.test(id));
+            if (ids.length === 0) { alert("请输入有效的漫画ID！"); return; }
+            resetViewerState();
+            viewer.innerHTML = `<p class="status">正在处理请求，请稍候...</p>`;
+            submittedTaskIds = new Set(ids);
+            taskQueueContainer.style.display = 'block';
+            submitTaskButton.disabled = true;
+            submitTaskButton.textContent = '处理中...';
+            try {
+                const response = await fetch('/api/submit_manga_tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: ids }) });
+                const data = await response.json();
+                if (!response.ok && response.status !== 202) throw new Error(data.error || '提交失败');
+                if (data.status === 'partial_cached' || data.status === 'all_cached') {
+                    await processCompletedBatch(ids);
+                    submittedTaskIds.clear();
+                } else if (data.status === 'tasks_added') {
+                    viewer.innerHTML = `<p class="status">任务已加入下载队列，完成后将在此处自动显示。</p>`;
+                } else {
+                    handleError("服务器返回未知状态，请检查控制台。");
+                    submittedTaskIds.clear();
+                }
+                await fetchTaskStatus();
+                if (!taskStatusInterval) taskStatusInterval = setInterval(fetchTaskStatus, 3000);
+                searchInput.value = '';
+            } catch (error) {
+                alert(`提交任务失败: ${error.message}`);
+                handleError(`提交任务 ${[...submittedTaskIds].join(', ')} 失败: ${error.message}`);
+                submittedTaskIds.clear();
+            } finally {
+                submitTaskButton.disabled = false;
+                submitTaskButton.textContent = '提交下载任务';
+            }
+        }
+
+        async function processCompletedBatch(idList) {
+            console.log("处理批次:", idList);
+            try {
+                const response = await fetch('/api/get_cache_list');
+                if (!response.ok) throw new Error("无法获取最新的书架列表");
+                const fullCacheList = await response.json();
+                const newSeriesData = [];
+                idList.forEach(id => {
+                    const itemsForThisId = fullCacheList.filter(item => item.id === id);
+                    if (itemsForThisId.length > 0) newSeriesData.push(...itemsForThisId);
+                });
+                if (newSeriesData.length > 0) {
+                    seriesData = newSeriesData;
+                    await loadChapter(0);
+                } else {
+                    handleError("任务处理完成，但在书架中找不到任何对应项目。");
+                }
+            } catch (e) {
+                handleError("处理已完成任务时出错: " + e.message);
+            }
+        }
+
+        async function fetchTaskStatus() {
+            try {
+                const response = await fetch('/api/get_task_status');
+                if (!response.ok) return;
+                const data = await response.json();
+                renderTaskStatus(data);
+                if (submittedTaskIds.size > 0) {
+                    const completedSubmitted = data.completed_tasks.filter(task => submittedTaskIds.has(task.id));
+                    if (completedSubmitted.length === submittedTaskIds.size) {
+                        const successfulTaskIds = data.completed_tasks.filter(task => submittedTaskIds.has(task.id) && task.success).map(task => task.id);
+                        if (successfulTaskIds.length > 0) { await processCompletedBatch(successfulTaskIds); } 
+                        else { handleError(`提交的任务 ${[...submittedTaskIds].join(', ')} 全部下载失败。`); }
+                        submittedTaskIds.clear();
+                    }
+                }
+            } catch (error) {
+                console.error("获取任务状态失败:", error);
+            }
+        }
+        
+        function renderTaskStatus(data) {
+            if (data.current_task && data.current_task.id) { const elapsed = Math.round(Date.now() / 1000 - data.current_task.started_at); currentTaskDisplay.innerHTML = `<div class="current-task-card"><div class="spinner"></div><div><strong>正在下载: <code>${data.current_task.id}</code></strong><p>已用时: ${elapsed} 秒</p></div></div>`; } 
+            else { currentTaskDisplay.innerHTML = `<p class="status">当前无下载任务</p>`; }
+            pendingList.innerHTML = data.pending_tasks.length > 0 ? data.pending_tasks.map(id => `<li><code>${id}</code></li>`).join('') : `<li>队列为空</li>`;
+            let shouldRefreshCache = false;
+            if (data.completed_tasks.length > 0) { completedList.innerHTML = data.completed_tasks.map(task => { if (task.success) shouldRefreshCache = true; const icon = task.success ? '✓' : '✗'; const liClass = task.success ? 'status-success' : 'status-error'; return `<li class="${liClass}"><span>${icon} <code>${task.id}</code> - ${task.message.substring(0, 100)}</span></li>`; }).join(''); } 
+            else { completedList.innerHTML = `<li>暂无历史记录</li>`; }
+            if (shouldRefreshCache) loadCacheList();
+        }
+        
+        async function fetchSeriesAndImages(mangaId, dirName = null) {
+            let url = `/api/fetch_manga?id=${mangaId}`;
+            if (dirName) {
+                url += `&dir=${encodeURIComponent(dirName)}`;
+            }
+            const response = await fetch(url);
+            const data = await response.json();
+            if (!response.ok || data.error) {
+                throw new Error(data.error || '获取漫画数据失败');
+            }
+            return data;
+        }
+
+        async function fetchImagesForChapter(mangaId, dirName) {
+            const data = await fetchSeriesAndImages(mangaId, dirName);
+            if (!data.images) {
+                throw new Error('获取图片列表失败');
+            }
+            return data.images;
+        }
+
+        function renderImages(imageUrls) {
+            allImageUrls = imageUrls;
+            currentIndex = 0;
+            viewer.innerHTML = `<button id="fullscreen-toggle" aria-label="切换全屏模式" style="display: none;"><svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 2h-2v3h-3v2h5v-5zm-3-4V5h-2v5h5V7h-3z"/></svg></button>`;
+            document.getElementById('fullscreen-toggle').style.display = 'block';
+            loadMoreImages();
+        }
+
+        function updateChapterNav() {
+            if (seriesData.length === 0) {
+                chapterNav.style.display = 'none';
+                return;
+            }
+            chapterNav.style.display = 'flex';
+            const currentAlbum = seriesData[currentChapterIndex];
+            if (currentAlbum) {
+                currentChapterTitle.textContent = `(${currentAlbum.id}) ${currentAlbum.title}`;
+            } else {
+                currentChapterTitle.textContent = "未知章节";
+            }
+            const hasMultipleItems = seriesData.length > 1;
+            prevChapterBtn.disabled = !hasMultipleItems || currentChapterIndex <= 0;
+            nextChapterBtn.disabled = !hasMultipleItems || currentChapterIndex >= seriesData.length - 1;
+        }
+
+        async function loadChapter(index) {
+            if (index < 0 || index >= seriesData.length) return;
+            currentChapterIndex = index;
+            const album = seriesData[index];
+            viewer.innerHTML = `<p class="status">正在加载: ${album.title}...</p>`;
+            try {
+                const images = await fetchImagesForChapter(album.id, album.dir);
+                renderImages(images);
+                updateChapterNav();
+            } catch (error) {
+                handleError(error.message);
+            }
+        }
+
+        async function startViewingFromCache(mangaId) {
+            viewer.innerHTML = `<p class="status">正在加载漫画系列: ${mangaId}...</p>`;
+            try {
+                const data = await fetchSeriesAndImages(mangaId);
+                seriesData = data.series;
+                currentChapterIndex = 0;
+                renderImages(data.images);
+                updateChapterNav();
+            } catch (error) {
+                handleError(error.message);
+            }
+        }
+        
+        function resetViewerState() { allImageUrls = []; currentIndex = 0; seriesData = []; currentChapterIndex = -1; chapterNav.style.display = 'none'; viewer.innerHTML = `<button id="fullscreen-toggle" aria-label="切换全屏模式" style="display: none;"><svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 2h-2v3h-3v2h5v-5zm-3-4V5h-2v5h5V7h-3z"/></svg></button><p class="status">从下方书架选择漫画开始阅读</p>`; loadMoreButton.style.display = 'none'; viewer.classList.remove('in-fullscreen'); }
+        function handleError(message) { viewer.innerHTML = `<p class="status error">出错了: ${message}</p>`; }
+        function loadMoreImages() { const nextBatch = allImageUrls.slice(currentIndex, currentIndex + batchSize); nextBatch.forEach(url => { const img = document.createElement('img'); img.src = url; viewer.appendChild(img); }); currentIndex += nextBatch.length; if (currentIndex < allImageUrls.length) { loadMoreButton.style.display = 'block'; } else { loadMoreButton.style.display = 'none'; if (allImageUrls.length > 0) { viewer.insertAdjacentHTML('beforeend', '<p class="status">已全部加载完毕</p>'); } } }
+        function toggleFullScreen() { if (!document.fullscreenElement) { viewer.requestFullscreen().catch(err => alert(`无法进入全屏模式: ${err.message}`)); viewer.classList.add('in-fullscreen'); } else { document.exitFullscreen(); } }
+
+        // --- 事件监听区 ---
+        submitTaskButton.addEventListener('click', submitTasks);
+        searchInput.addEventListener('keyup', (event) => { if (event.key === 'Enter') submitTasks(); });
+        loadMoreButton.addEventListener('click', loadMoreImages);
+        prevChapterBtn.addEventListener('click', () => loadChapter(currentChapterIndex - 1));
+        nextChapterBtn.addEventListener('click', () => loadChapter(currentChapterIndex + 1));
+        backToTopBtn.addEventListener('click', () => window.scrollTo({top: 0, behavior: 'smooth'}) );
+        window.onscroll = function() { if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) { backToTopBtn.style.display = "block"; } else { backToTopBtn.style.display = "none"; } };
+        viewer.addEventListener('click', (event) => { if (event.target.closest('#fullscreen-toggle')) { toggleFullScreen(); } });
+        document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) { viewer.classList.remove('in-fullscreen'); } });
+
+        // 页面功能初始化
+        initializePage();
+    }
+});
+</script>
+</body>
+</html>

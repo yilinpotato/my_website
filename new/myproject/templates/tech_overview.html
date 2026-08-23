@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技术与团队介绍 - AI运动评估</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_v2.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="navbar">
+        <div class="container">
+            <a href="{{ url_for('index_page') }}" class="logo" aria-label="基于多模态的人体运动质量评估系统 - 首页">
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logo-gradient-tech" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#007bff;"/>
+                            <stop offset="100%" style="stop-color:#6f42c1;"/>
+                        </linearGradient>
+                    </defs>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 90L25 20L50 60L75 20L100 90H80L50 45L20 90H0Z" fill="url(#logo-gradient-tech)"/>
+                </svg>
+                <span class="logo-text">AI运动评估</span>
+            </a>
+            <nav></nav>
+            <div class="user-actions">
+                {% if current_user.is_authenticated %}
+                    <div class="user-profile">
+                        {% if session.get('is_admin') %}
+                        <a href="{{ url_for('admin_dashboard') }}" class="admin-panel-btn" title="管理员面板">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                              <path d="M6 1v3H1V1h5zM1 0a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1H1zm14 12v3H1v-3h14zm-1-1H1a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1zM6 8v7H1V8h5zM1 7a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1H1zm14-6v7h-5V1h5zM10 0a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1h-5z"/>
+                            </svg>
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('profile_page', username=current_user.username) }}" class="avatar-link" title="查看个人主页">
+                            <img src="https://api.dicebear.com/8.x/identicon/svg?seed={{ current_user.username }}" alt="用户头像" class="avatar">
+                        </a>
+                        <span class="welcome-msg">欢迎, {{ current_user.username }}</span>
+                        {% if session.get('is_admin') %}
+                            <span id="admin-badge" class="admin-badge" title="点击注销管理员身份">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v5.5a6 6 0 0 0 7 6 6 6 0 0 0 7-6V4h-3.5zM10.893 6.578A1.5 1.5 0 0 0 8 5.5a1.5 1.5 0 0 0-2.893 1.078l-1.002.365A2.5 2.5 0 0 1 8 4.5a2.5 2.5 0 0 1 3.895 2.443l-1.002-.365z"/>
+                                    <path fill-rule="evenodd" d="M8 0c-.81 0-1.447.255-1.96.72C5.524 1.18 5 1.73 5 2.5V3c0 .342.333.615.422.848A5.003 5.003 0 0 1 11 3c.09-.233.422-.506.422-.848V2.5c0-.77-.524-1.32-1.04-1.78C9.447.255 8.81 0 8 0zM5.5 4.134A5.5 5.5 0 0 1 8 1.5a5.5 5.5 0 0 1 2.5 4.134c-.21.137-.435.288-.67.458A4.5 4.5 0 0 0 8 4.5a4.5 4.5 0 0 0-1.83.592c-.235-.17-.46-.321-.67-.458z"/>
+                                </svg>
+                                管理员
+                            </span>
+                        {% endif %}
+                        <a href="{{ url_for('logout') }}" class="logout-btn">注销</a>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="login-btn">登录</a>
+                    <a href="{{ url_for('register') }}" class="register-btn">注册</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-header-modern">
+            <div class="container">
+                <h1>技术与团队介绍</h1>
+                <p>了解系统架构、关键算法与背后团队，全面掌握项目的技术实力与协作流程。</p>
+            </div>
+        </section>
+
+        <section class="tech-team">
+            <div class="container">
+                <div class="info-grid">
+                    <article class="info-card">
+                        <h3>项目总结</h3>
+                        <dl>
+                            <dt>项目名称</dt>
+                            <dd>多模态人体运动质量评估系统 (Multimodal Human Motion Quality Assessment System)</dd>
+                            <dt>核心问题</dt>
+                            <dd>家庭健身缺乏专业、零延迟的动作反馈，导致动作不规范、训练效果差且易受伤。</dd>
+                            <dt>项目目标</dt>
+                            <dd>打造一个专业、实时、多维度的运动分析与矫正系统，提供“零延迟”警告与“AI驱动”评分报告。</dd>
+                            <dt>项目阶段</dt>
+                            <dd>硬件与视觉算法原型已验证，深度学习模型训练与系统集成正在推进。</dd>
+                        </dl>
+                    </article>
+                    <article class="info-card highlight">
+                        <h3>关键信息</h3>
+                        <ul>
+                            <li><strong>多模态输入：</strong>融合 MediaPipe 视觉骨架与 4 通道 IMU 传感。</li>
+                            <li><strong>实时性：</strong>零延迟硬件蜂鸣器预警 + WebSocket 快速数据链路。</li>
+                            <li><strong>AI 推进：</strong>动作质量 LSTM/TCN 评分 + Gemini 系列 LLM 报告生成。</li>
+                            <li><strong>隐私优先：</strong>原始视频仅在浏览器处理，服务器仅接收骨架与事件数据。</li>
+                        </ul>
+                    </article>
+                </div>
+
+                <div class="architecture-block">
+                    <h3>🏗️ 项目架构与实现</h3>
+                    <p>系统采用“终端算力优先 + 轻量后端”的三组件实时通信架构，通过 WebSocket 在硬件、浏览器前端与 Python 服务之间建立低延迟数据总线。</p>
+                    <div class="architecture-grid">
+                        <article>
+                            <h4>1. 硬件系统 (Hardware System)</h4>
+                            <ul>
+                                <li><strong>核心组件：</strong>ESP32 微控制器（集成 Wi-Fi）+ 4 组高精度 IMU（如 MPU6050）。</li>
+                                <li><strong>部署策略：</strong>传感器布设在脊柱、双上臂与前大腿，实现躯干与上下肢协同监测。</li>
+                                <li><strong>本地反馈：</strong>ESP32 运行 C++ 固件计算关键角度，并通过蜂鸣器即时提示核心塌陷、手肘外展等错误。</li>
+                                <li><strong>数据传输：</strong>原始 IMU 与处理后的事件（如 <code>CORE_COLLAPSE_EVENT</code>）均通过 WebSocket 上报。</li>
+                            </ul>
+                        </article>
+                        <article>
+                            <h4>2. 软件系统 - 前端与视觉</h4>
+                            <ul>
+                                <li><strong>平台：</strong>部署于 <a href="https://potatoma.me" target="_blank" rel="noopener">potatoma.me</a> 的 Web 应用。</li>
+                                <li><strong>技术栈：</strong>HTML/CSS/JavaScript + WebRTC（摄像头）+ Canvas 渲染。</li>
+                                <li><strong>核心技术：</strong>MediaPipe 在浏览器端完成 33 关节点高保真姿态估计。</li>
+                                <li><strong>隐私设计：</strong>原始视频流不出本地，仅将低带宽关节坐标发送至后端。</li>
+                            </ul>
+                        </article>
+                        <article>
+                            <h4>3. 软件系统 - 后端与算法</h4>
+                            <ul>
+                                <li><strong>技术栈：</strong>轻量级 Python 服务 + SQLite 数据库。</li>
+                                <li><strong>实时通信：</strong>WebSocket Endpoint 负责汇聚硬件与前端的流式数据。</li>
+                                <li><strong>算法阶段：</strong>先以 NumPy 几何规则（<code>calculate_angle</code>）监测，再引入 LSTM/TCN 模型分析节奏、平滑度与连贯性，聚焦“动作质量”。</li>
+                                <li><strong>LLM 方案：</strong>使用 Gemini 2.5 Pro 等模型把多模态量化结果生成可操作的训练报告。</li>
+                            </ul>
+                        </article>
+                    </div>
+                </div>
+
+                <div class="team-block">
+                    <h3>🧑‍💻 人员分工与贡献</h3>
+                    <p>团队由 5 名大数据专业成员组成，贡献度平均分配（各 20%），保障需求、研发与交付的高效闭环。</p>
+                    <div class="team-table-wrapper">
+                        <table class="team-table">
+                            <thead>
+                                <tr>
+                                    <th>模块负责人</th>
+                                    <th>核心贡献内容</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>张哲威</strong><br/>项目 Leader & 硬件系统</td>
+                                    <td>统筹项目；开发 ESP32 固件；实现硬件-服务器 WebSocket 通信与本地蜂鸣器告警。</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>马亦麟</strong><br/>前端 & 系统运维</td>
+                                    <td>负责 Web 前端、身份认证、管理面板与可视化；集成 MediaPipe 姿态识别；运维服务器与文档。</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>陈依睿</strong><br/>后端核心评估引擎</td>
+                                    <td>构建实时评估引擎；完成几何规则诊断、角度计算、质量评分与多模态融合逻辑。</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>周琮越</strong><br/>后端 ML 模型</td>
+                                    <td>研发 LSTM/TCN 模型；设计错误-分数映射；集成并调试大模型 API。</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>金慧婷</strong><br/>后端数据工程</td>
+                                    <td>负责多源动作数据采集、清洗、预处理；完成时间序列切分、关键帧提取与训练集构建。</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="innovation-block">
+                    <h3>✨ 项目创新与优势</h3>
+                    <ol class="innovation-list">
+                        <li>
+                            <strong>多模态数据融合与实时闭环反馈：</strong>融合视觉骨架与 IMU 高频数据，前端/深度学习给出即时分数，硬件蜂鸣器同步输出音频警报，构成完整闭环体验。
+                        </li>
+                        <li>
+                            <strong>时序深度学习评估：</strong>基于 LSTM/TCN 分析动作的平滑度、节奏一致性与控制力，能够捕捉教练级别的细节，用于“动作质量”判定。
+                        </li>
+                        <li>
+                            <strong>去中心化模型架构：</strong>采用动作专用的小型模型集群，易于扩展、训练效率高，并显著提升特定动作的准确度。</strong>
+                        </li>
+                        <li>
+                            <strong>LLM 驱动的个性化报告：</strong>通过 Gemini 2.5 Pro 等 LLM 将多模态定量数据转译为高亮区域、原因解释与行动计划，提供贴身 AI 教练体验。
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="tech-page-actions">
+                    <a href="{{ url_for('index_page') }}" class="back-home-link" aria-label="返回首页">
+                        <span>← 返回首页</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="team-info"><strong>组长：</strong>张哲威 <span class="divider">|</span> <strong>组员：</strong>金慧婷, 陈依睿, 周琮越, 马亦麟</p>
+            <p class="project-description">本项目旨在构建一个可用于运动康复、体育训练、人机交互的高精度的全身运动识别与分析系统。</p>
+            <p class="copyright"><small>© 2025 马亦麟. All Rights Reserved.</small></p>
+            <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">粤ICP备2025490751号-1</a>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const adminBadge = document.getElementById('admin-badge');
+            if (adminBadge) {
+                adminBadge.addEventListener('click', function() {
+                    if (confirm('您当前是管理员身份。确定要注销管理员权限吗？(这不会登出您的普通用户账号)')) {
+                        window.location.href = "{{ url_for('admin_logout') }}";
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!-- /var/www/jm_viewer/templates/hybrid_creator.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片隐写工具 - 马的个人博客</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+    <header class="navbar">
+        <div class="container">
+            <!-- ★★★ 修正点：url_for('index') -> url_for('index_page') ★★★ -->
+            <a href="{{ url_for('index_page') }}" class="logo" aria-label="马的个人博客 - 首页">
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#007bff;"/><stop offset="100%" style="stop-color:#6f42c1;"/></linearGradient></defs><path fill-rule="evenodd" clip-rule="evenodd" d="M0 90L25 20L50 60L75 20L100 90H80L50 45L20 90H0Z" fill="url(#logo-gradient)"/></svg>
+                <span class="logo-text">马的个人博客</span>
+            </a>
+            <nav>
+                <ul>
+                    <!-- ★★★ 修正点：全部使用 app.py 中定义的函数名 ★★★ -->
+                    <li><a href="{{ url_for('index_page') }}">首页</a></li>
+                  
+                    <li><a href="{{ url_for('guestbook_page') }}">留言板</a></li>
+                    <li><a href="{{ url_for('urls_page') }}">网址大全</a></li>
+                    <!-- 当前页面设为 active -->
+                    <li><a href="{{ url_for('hybrid_creator_page') }}" class="active">图片隐写</a></li>
+                    <li><a href="{{ url_for('ply_viewer_page') }}">3D查看器</a></li>
+                    <li><a href="{{ url_for('file_vault_page') }}">文件保险箱</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- ★★★ 新增：显示闪现消息的区域 ★★★ -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash-message">
+                        {{ messages[0] }}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- 创建部分 -->
+            <section class="creator-form">
+                <!-- ... 创建表单的内容 ... -->
+                 <h2 class="section-title">创建图片隐写文件</h2>
+                <p>上传一张图片作为“外壳”，再上传一个任意文件藏在里面。</p>
+                <form id="hybrid-form" method="POST" action="{{ url_for('hybrid_creator_page') }}" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="carrier_image">1. 选择封面图片 (JPG/PNG)</label>
+                        <input type="file" id="carrier_image" name="carrier_image" accept="image/jpeg,image/png" required>
+                        <div id="image-info" class="file-info">未选择文件</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="hidden_file">2. 选择要隐藏的文件 (任意类型)</label>
+                        <input type="file" id="hidden_file" name="hidden_file" required>
+                        <div id="file-info" class="file-info">未选择文件</div>
+                    </div>
+                    <button type="submit" class="btn-submit" id="submit-btn">生成并下载</button>
+                </form>
+                 <p style="margin-top: 1rem; font-size: 0.9em; color: #888;">提示: 文件大小限制为 100MB。下载后的图片，将其后缀改为 【.zip】 即可解压。</p>
+            </section>
+
+            <!-- 解压部分 -->
+            <section class="creator-form" style="margin-top: 3rem;">
+                <!-- ... 解压表单的内容 ... -->
+                <h2 class="section-title">解压图片中的隐藏文件</h2>
+                <p>上传一个包含隐藏文件的图片，本工具将提取出其中的 ZIP 压缩包。</p>
+                <form id="extractor-form" method="POST" action="{{ url_for('hybrid_extractor_page') }}" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="hybrid_image">选择要解压的图片文件</label>
+                        <input type="file" id="hybrid_image" name="hybrid_image" required>
+                        <div id="hybrid-image-info" class="file-info">未选择文件</div>
+                    </div>
+                    <button type="submit" class="btn-submit" id="extract-btn">解压并下载</button>
+                </form>
+            </section>
+        </div>
+    </main>
+    
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 马儿. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+ <!-- ★★★ 修改：JavaScript 脚本 ★★★ -->
+    <script>
+        // --- 创建表单的脚本 ---
+        document.getElementById('carrier_image').addEventListener('change', function() {
+            document.getElementById('image-info').textContent = this.files[0] ? this.files[0].name : '未选择文件';
+        });
+        document.getElementById('hidden_file').addEventListener('change', function() {
+            document.getElementById('file-info').textContent = this.files[0] ? this.files[0].name : '未选择文件';
+        });
+        document.getElementById('hybrid-form').addEventListener('submit', function() {
+            const btn = document.getElementById('submit-btn');
+            btn.classList.add('loading');
+            btn.textContent = '正在生成中';
+            btn.disabled = true;
+        });
+
+        // --- 新增：解压表单的脚本 ---
+        document.getElementById('hybrid_image').addEventListener('change', function() {
+            document.getElementById('hybrid-image-info').textContent = this.files[0] ? this.files[0].name : '未选择文件';
+        });
+        document.getElementById('extractor-form').addEventListener('submit', function() {
+            const btn = document.getElementById('extract-btn');
+            btn.classList.add('loading');
+            btn.textContent = '正在解压中';
+            btn.disabled = true;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!-- templates/guestbook.html (V3.3 - 语法与逻辑最终修复版) -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>留言板 - 马的个人博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .user-posting-info, .login-prompt { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding: 15px; background-color: var(--background-color); border-radius: 8px; }
+        .user-posting-info .avatar, .admin-avatar { width: 40px; height: 40px; border-radius: 50%; }
+        .user-posting-info .username { font-weight: 700; font-size: 1.1rem; }
+        .login-prompt a { font-weight: 700; padding: 8px 16px; border-radius: 6px; background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end)); color: white; text-decoration: none; margin-left: auto; }
+        .admin-avatar { border: 3px solid #FFD700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.7); }
+        .admin-author { color: #E5B80B; font-weight: 900 !important; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <div class="container">
+            <a href="{{ url_for('index_page') }}" class="logo" aria-label="马的个人博客 - 首页">
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#007bff;"/><stop offset="100%" style="stop-color:#6f42c1;"/></linearGradient></defs><path fill-rule="evenodd" clip-rule="evenodd" d="M0 90L25 20L50 60L75 20L100 90H80L50 45L20 90H0Z" fill="url(#logo-gradient)"/></svg>
+                <span class="logo-text">马的个人博客</span>
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('index_page') }}">首页</a></li>
+                    <li><a href="{{ url_for('guestbook_page') }}" class="active">留言板</a></li>
+                    <li><a href="{{ url_for('urls_page') }}">网址大全</a></li>
+                    <li><a href="{{ url_for('hybrid_creator_page') }}">图片隐写</a></li>
+                    <li><a href="{{ url_for('ply_viewer_page') }}">3D查看器</a></li>
+                    <li><a href="{{ url_for('file_vault_page') }}">文件保险箱</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="page-header">
+                <h1>留言板</h1>
+                <p>畅所欲言，分享你的想法</p>
+            </div>
+
+            {% if current_user.is_authenticated %}
+                <div class="user-posting-info">
+                    <img src="https://api.dicebear.com/8.x/identicon/svg?seed={{ current_user.username }}" alt="头像" class="avatar {% if session.get('is_admin') %}admin-avatar{% endif %}">
+                    <span class="username {% if session.get('is_admin') %}admin-author{% endif %}">您将以 {{ current_user.username }} 的身份发布</span>
+                </div>
+                <form id="guestbook-form" class="admin-form">
+                    <textarea id="content-input" placeholder="写下你的留言... (最多500字)" required maxlength="500" rows="4"></textarea>
+                    <button type="submit">发布留言</button>
+                </form>
+            {% else %}
+                <div class="login-prompt">
+                    <span>想要参与讨论？请先登录</span>
+                    <a href="{{ url_for('login') }}">去登录</a>
+                </div>
+            {% endif %}
+            
+            <div id="message-board" class="content-list">
+                <p class="status">正在加载留言...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 马儿. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // --- 全局变量和元素获取 ---
+        const messageBoard = document.getElementById('message-board');
+        const isUserLoggedIn = {{ current_user.is_authenticated|tojson }};
+        let isViewerAdmin = false;
+
+        // --- 辅助函数 ---
+        function formatTimestamp(ts) {
+            if (typeof ts !== 'number' || isNaN(ts)) return '未知时间';
+            const date = new Date(ts * 1000);
+            return date.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function createMessageCard(msg) {
+            const card = document.createElement('div');
+            card.className = 'content-card message-card';
+            card.dataset.id = msg.id;
+
+            let repliesHTML = '<div class="replies-container">';
+            (msg.replies || []).forEach(reply => {
+                const isAdminReply = reply.is_admin_post;
+                const avatarClass = isAdminReply ? "avatar admin-avatar" : "avatar";
+                const authorClass = isAdminReply ? "message-author admin-author" : "message-author";
+                repliesHTML += `
+                    <div class="reply-card">
+                         <div class="message-header">
+                            <div>
+                                <img src="https://api.dicebear.com/8.x/identicon/svg?seed=${reply.author}" class="${avatarClass}" style="width:20px; height:20px;">
+                                <span class="${authorClass}">${reply.author}</span>
+                            </div>
+                            <span class="message-timestamp">${formatTimestamp(reply.timestamp)}</span>
+                        </div>
+                        <p class="message-content">${reply.content}</p>
+                    </div>`;
+            });
+            repliesHTML += '</div>';
+
+            const isMainAdmin = msg.is_admin_post;
+            const mainAvatarClass = isMainAdmin ? "avatar admin-avatar" : "avatar";
+            const mainAuthorClass = isMainAdmin ? "message-author admin-author" : "message-author";
+            
+            let actionsHTML = `<button class="action-btn like-btn"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span class="like-count">${msg.likes || 0}</span></button>`;
+            if (isUserLoggedIn) {
+                actionsHTML += `<button class="action-btn reply-btn"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2z"/></svg><span>回复</span></button>`;
+            }
+            if (isViewerAdmin) {
+                actionsHTML += `<button class="action-btn delete-btn">删除</button>`;
+            }
+
+            card.innerHTML = `
+                <div class="message-header">
+                    <div>
+                        <img src="https://api.dicebear.com/8.x/identicon/svg?seed=${msg.author}" class="${mainAvatarClass}" style="width:20px; height:20px;">
+                        <span class="${mainAuthorClass}">${msg.author}</span>
+                    </div>
+                    <span class="message-timestamp">${formatTimestamp(msg.timestamp)}</span>
+                </div>
+                <p class="message-content">${msg.content}</p>
+                <div class="message-actions">${actionsHTML}</div>
+                ${(msg.replies && msg.replies.length > 0) ? repliesHTML : ''}
+            `;
+            return card;
+        }
+
+        async function fetchAndRenderMessages() {
+            try {
+                let messages = [];
+                try {
+                    const messagesResponse = await fetch('/api/messages');
+                    if (!messagesResponse.ok) throw new Error('获取留言失败');
+                    messages = await messagesResponse.json();
+                } catch (e) {
+                    messageBoard.innerHTML = '<p class="status error">加载留言列表失败，请刷新页面。</p>';
+                    return;
+                }
+
+                if (isUserLoggedIn) {
+                    try {
+                        const adminResponse = await fetch('/api/check_admin');
+                        if (adminResponse.ok) { isViewerAdmin = (await adminResponse.json()).isAdmin; }
+                    } catch (e) { console.warn('检查管理员状态失败'); }
+                }
+
+                messageBoard.innerHTML = '';
+                if (messages.length === 0) {
+                    messageBoard.innerHTML = '<p class="status">还没有人留言，快来抢沙发！</p>';
+                } else {
+                    messages.forEach(msg => messageBoard.appendChild(createMessageCard(msg)));
+                }
+            } catch (error) {
+                messageBoard.innerHTML = '<p class="status error">渲染留言时出错，请联系管理员。</p>';
+            }
+        }
+
+        // --- 事件监听器 ---
+        
+        // 只有当 form 存在 (用户已登录) 时，才绑定提交事件
+        const form = document.getElementById('guestbook-form');
+        if (form) {
+            const contentInput = document.getElementById('content-input');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const content = contentInput.value.trim();
+                if (!content) return alert('留言内容不能为空！');
+
+                try {
+                    const response = await fetch('/api/messages', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content: content })
+                    });
+                    if (response.ok) {
+                        contentInput.value = '';
+                        await fetchAndRenderMessages();
+                    } else {
+                        const result = await response.json();
+                        alert(`发布失败: ${result.error || '未知错误'}`);
+                    }
+                } catch (error) {
+                    alert('网络错误，发布失败。');
+                }
+            });
+        }
+        
+        // 事件委托总是安全的，因为它绑定在 messageBoard 上
+        messageBoard.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.action-btn');
+            if (!btn) return;
+            
+            const card = e.target.closest('.message-card');
+            const messageId = card.dataset.id;
+
+            if (btn.classList.contains('like-btn')) {
+                fetch(`/api/messages/${messageId}/like`, { method: 'POST' })
+                    .then(res => {
+                        if(res.ok) {
+                            const countSpan = btn.querySelector('.like-count');
+                            countSpan.textContent = parseInt(countSpan.textContent) + 1;
+                        }
+                    });
+            } else if (btn.classList.contains('reply-btn')) {
+                const replyContent = prompt('请输入你的回复内容：');
+                if (replyContent && replyContent.trim()) {
+                    try {
+                        const response = await fetch(`/api/messages/${messageId}/reply`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ content: replyContent.trim() })
+                        });
+                        if (response.ok) {
+                            await fetchAndRenderMessages();
+                        } else {
+                            const result = await response.json();
+                            alert(`回复失败: ${result.error || '未知错误'}`);
+                        }
+                    } catch (error) {
+                        alert('网络错误，回复失败。');
+                    }
+                }
+            } else if (btn.classList.contains('delete-btn')) {
+                if (!isViewerAdmin || !confirm('确定要删除这条留言吗？')) return;
+                fetch(`/api/messages/${messageId}`, { method: 'DELETE' })
+                   .then(res => {
+                       if(res.ok) {
+                           card.remove();
+                       } else {
+                           alert('删除失败！');
+                       }
+                   });
+            }
+        });
+        
+        // 初始加载
+        fetchAndRenderMessages();
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件保险箱 - 马的个人博客</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* 样式保持不变，这里省略重复的CSS代码 */
+        .vault-container { max-width: 800px; margin: 2rem auto; padding: 2rem; background-color: var(--card-bg-color); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 700; color: var(--text-color); }
+        .form-group input[type="password"], .form-group input[type="text"], .form-group input[type="file"] { width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--bg-color); color: var(--text-color); transition: border-color 0.3s, box-shadow 0.3s; }
+        .form-group input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2); }
+        .btn-submit { display: inline-block; width: 100%; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; background-image: linear-gradient(45deg, #007bff, #6f42c1); color: white; font-weight: 700; font-size: 1rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(111, 66, 193, 0.3); }
+        .flash-messages { list-style: none; padding: 0; margin-bottom: 1.5rem; }
+        .flash-messages li { padding: 1rem; border-radius: 8px; color: #fff; margin-bottom: 1rem; }
+        .flash-messages .success { background-color: #28a745; }
+        .flash-messages .error { background-color: #dc3545; }
+        .flash-messages .info { background-color: #17a2b8; }
+        .admin-panel { margin-top: 3rem; padding-top: 2rem; border-top: 2px solid var(--border-color); }
+        .admin-panel h3 { border-bottom: 2px solid var(--primary-color); padding-bottom: 0.5rem; }
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .admin-table th, .admin-table td { padding: 0.8rem; border: 1px solid var(--border-color); text-align: left; }
+        .admin-table th { background-color: var(--card-bg-color); font-weight: 700; }
+        .admin-table td { word-break: break-all; }
+        .btn-delete { background-color: #dc3545; color: white; padding: 0.4rem 0.8rem; border-radius: 5px; border: none; cursor: pointer; }
+
+                /* ★★★ 在这里添加新的CSS样式 ★★★ */
+        .progress-container {
+            width: 100%;
+            background-color: var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 1rem;
+            position: relative; /* 用于定位百分比文本 */
+            height: 30px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .progress-bar {
+            width: 0%; /* 初始宽度为0 */
+            height: 100%;
+            background-image: linear-gradient(45deg, #1a8dff, #8e44ad);
+            border-radius: 8px;
+            transition: width 0.4s ease; /* 让进度条增长有平滑动画 */
+        }
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+                /* ★★★ 新增：为实时验证信息添加样式 ★★★ */
+        .validation-message {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            height: 20px; /* 给它一个固定高度，防止页面跳动 */
+        }
+        .validation-message.error {
+            color: #dc3545; /* 红色，表示错误 */
+            font-weight: bold;
+        }
+        .validation-message.success {
+            color: #28a745; /* 绿色，表示可用 */
+        }
+        /* ★★★ 新增：当输入框内容无效时，给它一个红色边框 ★★★ */
+        input.is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2) !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏保持不变 -->
+    <header class="navbar">
+        <div class="container">
+            <a href="{{ url_for('index_page') }}" class="logo" aria-label="马的个人博客 - 首页">
+                <!-- SVG Logo -->
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#007bff;"/><stop offset="100%" style="stop-color:#6f42c1;"/></linearGradient></defs><path fill-rule="evenodd" clip-rule="evenodd" d="M0 90L25 20L50 60L75 20L100 90H80L50 45L20 90H0Z" fill="url(#logo-gradient)"/></svg>
+                <span class="logo-text">马的个人博客</span>
+            </a>
+            <nav>
+                 <ul>
+                    <li><a href="{{ url_for('index_page') }}">首页</a></li>
+                    
+                    <li><a href="{{ url_for('guestbook_page') }}">留言板</a></li>
+                    <li><a href="{{ url_for('urls_page') }}">网址大全</a></li>
+                    <li><a href="{{ url_for('hybrid_creator_page') }}">图片隐写</a></li>
+                    <li><a href="{{ url_for('ply_viewer_page') }}">3D查看器</a></li>
+                    <li><a href="{{ url_for('file_vault_page') }}" class="active">文件保险箱</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="vault-container">
+            
+            <h2 class="section-title">文件保险箱</h2>
+            <p>任何人都可以上传文件并获得一个密钥，或使用密钥下载文件。</p>
+
+            <!-- 显示 Flash 消息 -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <ul class="flash-messages">
+                {% for category, message in messages %}
+                  <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+              {% endif %}
+            {% endwith %}
+            
+            <hr style="margin: 2rem 0;">
+
+            <!-- 上传和下载表单，对所有用户可见 -->
+            <h3>上传文件</h3>
+            <!-- ★★★ 1. 给表单添加一个ID ★★★ -->
+            <form action="{{ url_for('file_vault_upload') }}" method="post" enctype="multipart/form-data" id="upload-form">
+                <div class="form-group">
+                    <label for="file">选择文件</label>
+                    <input type="file" id="file" name="file" required>
+                </div>
+                <div class="form-group">
+                    <label for="secret_key">指定一个下载密钥</label>
+                    <!-- ★★★ 1. 给输入框一个明确的ID ★★★ -->
+                    <input type="text" id="secret-key-input" name="secret_key" placeholder="例如：123qwe支持中文" required>
+                    <!-- ★★★ 2. 添加一个用于显示验证信息的小容器 ★★★ -->
+                    <div id="key-validation-message" class="validation-message"></div>
+                </div>
+                <!-- ★★★ 3. 给提交按钮一个ID ★★★ -->
+                <button type="submit" id="submit-button" class="btn-submit">上传</button>
+            </form>
+
+            <!-- ★★★ 2. 在这里添加进度条的HTML结构 ★★★ -->
+            <div class="progress-container" id="progress-container" style="display: none;">
+                <div class="progress-bar" id="progress-bar"></div>
+                <div class="progress-text" id="progress-text">0%</div>
+            </div>
+            
+            <hr style="margin: 2rem 0;">
+
+            <h3>下载文件</h3>
+            <form action="{{ url_for('file_vault_download') }}" method="post">
+                <div class="form-group"><label for="download_key">输入下载密钥</label><input type="text" id="download_key" name="secret_key" required></div>
+                <button type="submit" class="btn-submit">下载</button>
+            </form>
+
+            
+
+            <!-- ★★★ 核心修改：现在直接判断从后端传来的 is_admin 变量 ★★★ -->
+            {% if is_admin %}
+            <div class="admin-panel">
+                <h3>管理员面板 - 所有文件</h3>
+                <p>您已作为管理员访问此页面，可以管理所有文件。</p>
+                
+                {% if all_files %}
+                <table class="admin-table">
+                    <thead><tr><th>密钥</th><th>原始文件名</th><th>上传时间</th><th>操作</th></tr></thead>
+                    <tbody>
+                        {% for key, info in all_files.items()|sort(attribute='1.timestamp', reverse=True) %}
+                        <tr>
+                            <td>{{ key }}</td>
+                            <td>{{ info.original_filename }}</td>
+                            <td>{{ info.timestamp }}</td>
+                            <td>
+                                <form action="{{ url_for('file_vault_delete', key=key) }}" method="post" onsubmit="return confirm('确定要永久删除这个文件吗？');">
+                                    <button type="submit" class="btn-delete">删除</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>当前没有已上传的文件。</p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+        </div>
+    </main>
+    
+    <!-- 页脚保持不变 -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 马儿. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- SECTION 1: 获取所有需要操作的HTML元素 ---
+        const form = document.getElementById('upload-form');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const keyInput = document.getElementById('secret-key-input');
+        const validationMessage = document.getElementById('key-validation-message');
+        const submitButton = document.getElementById('submit-button');
+        const fileInput = document.getElementById('file');
+
+
+        // --- SECTION 2: 智能的表单提交逻辑 (核心修改) ---
+        // ★★★ 1. 将提交事件处理器改为 async 函数 ★★★
+        form.addEventListener('submit', async function(event) {
+            // 始终先阻止表单的默认提交行为
+            event.preventDefault();
+
+            // ★★★ 2. 在提交的瞬间，进行一次最终的、决定性的密钥检查 ★★★
+            console.log("Submit button clicked. Performing final key check...");
+            // 我们调用 checkKey 函数并等待它的结果 (true 表示重复, false 表示可用)
+            const isDuplicate = await checkKey();
+
+            // ★★★ 3. 如果检查结果是“重复”，则中止一切后续操作 ★★★
+            if (isDuplicate) {
+                console.log("Submission blocked by frontend: Key is a duplicate.");
+                // checkKey函数本身已经更新了错误提示，我们这里只需要停止即可。
+                // 此时，进度条完全不会被呼出。
+                return; 
+            }
+            
+            // --- 如果密钥检查通过，才继续执行文件上传 ---
+            console.log("Key is valid. Proceeding with upload.");
+
+            // 检查是否选择了文件
+            if (!fileInput.files.length) {
+                alert('请先选择一个文件再上传！');
+                return;
+            }
+
+            // ★★★ 4. 只有在所有检查都通过后，才显示进度条并开始上传 ★★★
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressText.textContent = '0%';
+            submitButton.disabled = true;
+            submitButton.textContent = '正在上传...';
+
+            const formData = new FormData(form);
+            const xhr = new XMLHttpRequest();
+
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    progressBar.style.width = percentComplete + '%';
+                    progressText.textContent = Math.round(percentComplete) + '%';
+                }
+            });
+
+            xhr.addEventListener('load', function() {
+                progressBar.style.width = '100%';
+                progressText.textContent = '完成!';
+                setTimeout(() => { window.location.reload(); }, 500);
+            });
+
+            xhr.addEventListener('error', function() {
+                alert('上传失败！请检查网络连接并重试。');
+                progressContainer.style.display = 'none';
+                submitButton.disabled = false;
+                submitButton.textContent = '上传';
+            });
+
+            xhr.open('POST', form.action, true);
+            xhr.send(formData);
+        });
+
+
+        // --- SECTION 3: 实时密钥验证逻辑 (辅助功能) ---
+        // (这部分代码保持不变，它提供实时的用户体验)
+        let debounceTimer;
+        function debounce(func, delay) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(func, delay);
+        }
+
+        keyInput.addEventListener('input', function() {
+            debounce(checkKey, 500);
+        });
+
+        // ★★★ 5. 修改 checkKey 函数，让它返回一个布尔值 (true/false) ★★★
+        async function checkKey() {
+            const key = keyInput.value.trim();
+            if (key === '') {
+                validationMessage.textContent = '';
+                keyInput.classList.remove('is-invalid');
+                submitButton.disabled = false;
+                return false; // 空白不算重复
+            }
+
+            try {
+                const response = await fetch('/file-vault/check-key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: key })
+                });
+
+                if (!response.ok) { throw new Error('Network response error'); }
+
+                const data = await response.json();
+
+                if (data.exists) {
+                    validationMessage.textContent = '❌ 这个密钥已被使用，请换一个。';
+                    validationMessage.className = 'validation-message error';
+                    keyInput.classList.add('is-invalid');
+                    submitButton.disabled = true;
+                    return true; // ★★★ 关键：返回 true 表示重复 ★★★
+                } else {
+                    validationMessage.textContent = '✅ 这个密钥可以使用！';
+                    validationMessage.className = 'validation-message success';
+                    keyInput.classList.remove('is-invalid');
+                    submitButton.disabled = false;
+                    return false; // ★★★ 关键：返回 false 表示可用 ★★★
+                }
+            } catch (error) {
+
+            }
+        }
+    });
+    </script>
+    <!-- ★★★ AAAA 替换结束 AAAA ★★★ -->
+
+
+</body>
+</html>

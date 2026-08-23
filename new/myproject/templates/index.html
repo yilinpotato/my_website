@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI运动评估 - 首页</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo.svg') }}">
+    <!-- 链接到更新后的 CSS 文件 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_v2.css') }}"> 
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- (Header 和隐藏的 div 保持不变) -->
+    <div id="admin-status-holder" data-is-admin="{{ session.get('is_admin', false) | string | lower }}" style="display: none;"></div>
+
+    <header class="navbar">
+        <div class="container">
+            <a href="{{ url_for('index_page') }}" class="logo" aria-label="基于多模态的人体运动质量评估系统 - 首页">
+                <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs><linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#007bff;"/><stop offset="100%" style="stop-color:#6f42c1;"/></linearGradient></defs>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 90L25 20L50 60L75 20L100 90H80L50 45L20 90H0Z" fill="url(#logo-gradient)"/></svg>
+                <span class="logo-text">AI运动评估</span>
+            </a>
+            <nav></nav>
+            <div class="user-actions">
+                {% if current_user.is_authenticated %}
+                    <div class="user-profile">
+                        {% if session.get('is_admin') %}
+                        <a href="{{ url_for('admin_dashboard') }}" class="admin-panel-btn" title="管理员面板">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                              <path d="M6 1v3H1V1h5zM1 0a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1H1zm14 12v3H1v-3h14zm-1-1H1a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1zM6 8v7H1V8h5zM1 7a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1H1zm14-6v7h-5V1h5zM10 0a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1h-5z"/>
+                            </svg>
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('profile_page', username=current_user.username) }}" class="avatar-link" title="查看个人主页">
+                            <img src="https://api.dicebear.com/8.x/identicon/svg?seed={{ current_user.username }}" alt="用户头像" class="avatar">
+                        </a>
+                        <span class="welcome-msg">欢迎, {{ current_user.username }}</span>
+                        {% if session.get('is_admin') %}
+                            <span id="admin-badge" class="admin-badge" title="点击注销管理员身份">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v5.5a6 6 0 0 0 7 6 6 6 0 0 0 7-6V4h-3.5zM10.893 6.578A1.5 1.5 0 0 0 8 5.5a1.5 1.5 0 0 0-2.893 1.078l-1.002.365A2.5 2.5 0 0 1 8 4.5a2.5 2.5 0 0 1 3.895 2.443l-1.002-.365z"/>
+                                    <path fill-rule="evenodd" d="M8 0c-.81 0-1.447.255-1.96.72C5.524 1.18 5 1.73 5 2.5V3c0 .342.333.615.422.848A5.003 5.003 0 0 1 11 3c.09-.233.422-.506.422-.848V2.5c0-.77-.524-1.32-1.04-1.78C9.447.255 8.81 0 8 0zM5.5 4.134A5.5 5.5 0 0 1 8 1.5a5.5 5.5 0 0 1 2.5 4.134c-.21.137-.435.288-.67.458A4.5 4.5 0 0 0 8 4.5a4.5 4.5 0 0 0-1.83.592c-.235-.17-.46-.321-.67-.458z"/>
+                                </svg>
+                                管理员
+                            </span>
+                        {% endif %}
+                        <a href="{{ url_for('logout') }}" class="logout-btn">注销</a>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="login-btn">登录</a>
+                    <a href="{{ url_for('register') }}" class="register-btn">注册</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>基于多模态的人体运动质量评估系统</h1>
+                <p>您的专属AI运动康复与训练分析师</p>
+                <!-- ★★★ 新增：为未来数据展示预留位置的注释 ★★★ -->
+                <!-- 未来可以在此处添加更多动态数据或图表，例如周训练趋势图等 -->
+            </div>
+        </section>
+        
+          <!-- ★★★ 这个区域在手机上会折叠 ★★★ -->
+        <section class="dashboard">
+            <div class="container">
+                <h2 class="section-title">个人状态概览</h2>
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+                        <div class="stat-value">128</div>
+                        <div class="stat-label">总训练次数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
+                        <div class="stat-value">8,450</div>
+                        <div class="stat-label">累计完成动作</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
+                        <div class="stat-value">92.5%</div>
+                        <div class="stat-label">平均动作准确率</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        
+        <!-- ★★★ 核心修改：将“操作台”部分移动到此处 ★★★ -->
+        <section class="projects">
+            <div class="container">
+                <!-- ★★★ 核心修改：重命名标题 ★★★ -->
+                <h2 class="section-title">操作台</h2>
+                <div class="project-grid">
+                    <a href="{{ url_for('training_page') }}" class="card">
+                        <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg></div>
+                        <div class="card-content"><h3>实时训练仪表盘</h3><p>用户进行训练和接收实时反馈的核心交互界面。</p></div>
+                    </a>
+                    <a href="{{ url_for('history_page') }}" class="card">
+                        <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38"/></svg></div>
+                        <div class="card-content"><h3>历史记录与分析</h3><p>量化自己的进步，查看详细的训练报告和趋势图。</p></div>
+                    </a>
+                    <a href="{{ url_for('tech_overview_page') }}" class="card">
+                        <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg></div>
+                        <div class="card-content"><h3>技术与团队介绍</h3><p>了解我们使用的前沿技术和充满热情的开发团队。</p></div>
+                    </a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 运动小贴士现在位于“操作台”下方 -->
+        <section class="knowledge">
+            <div class="container">
+                <h2 class="section-title">运动小贴士</h2>
+                <div class="tip-card">
+                    <h3>今日推荐：标准俯卧撑要领</h3>
+                    <p id="pushup-tip-text">正在加载小知识...</p>
+                    <button id="refresh-tip-btn" title="换一条"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg></button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="team-info"><strong>组长：</strong>张哲威 <span class="divider">|</span> <strong>组员：</strong>金慧婷, 陈依睿, 周琮越, 马亦麟</p>
+            <p class="project-description">本项目旨在构建一个可用于运动康复、体育训练、人机交互的高精度的全身运动识别与分析系统。</p>
+            <p class="copyright"><small>© 2025 马亦麟. All Rights Reserved.</small></p>
+            <a href="https://beian.miit.gov.cn/" target="_blank">粤ICP备2025490751号-1</a>
+        </div>
+    </footer>
+    
+    <script>
+        // JavaScript 代码保持不变
+        document.addEventListener("DOMContentLoaded", function() {
+            const animatedElements = document.querySelectorAll('.hero h1, .hero p, .section-title, .card, .stat-card, .tip-card');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            animatedElements.forEach((el, index) => {
+                el.classList.add('fade-in-up');
+                el.style.animationDelay = (index * 50) + 'ms';
+                observer.observe(el);
+            });
+
+            const pushupTips = ["核心收紧：保持腹部和臀部收紧，身体从头到脚呈一条直线，避免塌腰或撅臀。","手掌位置：双手略宽于肩，手指朝前，置于胸部两侧。手肘在下降时应靠近身体，而非向外张开。","下降深度：下降时，吸气，使胸部尽可能接近地面，至少达到肘关节呈90度的深度。","发力要领：上升时，呼气，用胸大肌和手臂的力量将身体推起，直至手臂完全伸直，但不要锁死肘关节。","呼吸节奏：下降时吸气，上升时呼气。保持均匀的呼吸，不要憋气。","头部姿态：保持头部与脊柱在一条直线上，眼睛看向地面稍前的位置，避免抬头或过度低头。"];
+            const tipTextElement = document.getElementById('pushup-tip-text');
+            const refreshBtn = document.getElementById('refresh-tip-btn');
+            function showRandomTip() {
+                if(tipTextElement) {
+                    const randomIndex = Math.floor(Math.random() * pushupTips.length);
+                    tipTextElement.textContent = pushupTips[randomIndex];
+                }
+            }
+            showRandomTip();
+            if(refreshBtn) {
+                refreshBtn.addEventListener('click', showRandomTip);
+            }
+
+            const logo = document.querySelector('.navbar .logo');
+            if (logo) {
+                const statusHolder = document.getElementById('admin-status-holder');
+                const isAdmin = statusHolder.dataset.isAdmin === 'true';
+                let clickCount = 0;
+                let clickTimer = null;
+                logo.addEventListener('click', function (event) {
+                    event.preventDefault(); 
+                    clickCount++;
+                    if (clickCount >= 5) {
+                        clearTimeout(clickTimer);
+                        clickCount = 0;
+                        if (isAdmin) {
+                            if (confirm("您已是管理员。确定要注销管理员权限吗？(这不会注销您的普通用户登录)")) {
+                                window.location.href = '/admin/logout';
+                            }
+                        } else {
+                            window.location.href = '/admin/login';
+                        }
+                        return;
+                    }
+                    clearTimeout(clickTimer);
+                    clickTimer = setTimeout(() => {
+                        if (clickCount < 5) { window.location.href = logo.href; }
+                        clickCount = 0;
+                    }, 1500);
+                });
+            }
+
+            const adminBadge = document.getElementById('admin-badge');
+            if (adminBadge) {
+                adminBadge.addEventListener('click', function() {
+                    if (confirm("您当前是管理员身份。确定要注销管理员权限吗？(这不会登出您的普通用户账号)")) {
+                        window.location.href = "{{ url_for('admin_logout') }}";
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

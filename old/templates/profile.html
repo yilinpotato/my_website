@@ -1,0 +1,67 @@
+<!-- templates/profile.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ user.username }}的个人主页 - 马的个人博客{% endblock %}
+
+{% block head %}
+    <style>
+        .profile-container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 40px;
+            background-color: var(--card-background-color);
+            border-radius: 12px;
+            box-shadow: 0 8px 30px var(--shadow-color);
+            text-align: center;
+        }
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 5px solid white;
+            box-shadow: 0 4px 15px var(--shadow-color-hover);
+            margin-bottom: 20px;
+        }
+        .profile-username {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .profile-details {
+            list-style: none;
+            padding: 0;
+            margin-top: 30px;
+            text-align: left;
+            display: inline-block;
+        }
+        .profile-details li {
+            font-size: 1.1rem;
+            color: var(--text-color-muted);
+            margin-bottom: 15px;
+        }
+        .profile-details li strong {
+            color: var(--text-color);
+            min-width: 80px;
+            display: inline-block;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="profile-container">
+        <img src="https://api.dicebear.com/8.x/identicon/svg?seed={{ user.username }}" 
+             alt="{{ user.username }}的头像"
+             class="profile-avatar {% if user.username == 'admin' %}admin-avatar{% endif %}">
+
+        <h1 class="profile-username {% if user.username == 'admin' %}admin-author{% endif %}">
+            {{ user.username }}
+        </h1>
+        
+        <ul class="profile-details">
+            <li><strong>用户 ID:</strong> {{ user.id }}</li>
+            <li><strong>邮箱:</strong> {{ user.email }}</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

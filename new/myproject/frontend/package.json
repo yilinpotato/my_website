@@ -1,0 +1,17 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  	"test": "echo \"Error: no test specified\" && exit 1",
+  	"build": "esbuild src/main.js --bundle --outfile=../static/js/gsplat-bundle.js --minify --global-name=Gsplat"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "esbuild": "^0.25.9",
+    "gsplat": "^1.2.9"
+  }
+}

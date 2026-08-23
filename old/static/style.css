@@ -1,0 +1,1241 @@
+/* =================================================== */
+/*             马儿的工具箱 - 全局样式 V4.0             */
+/*                  (整理重构版)                     */
+/* =================================================== */
+
+/* --- 1. 全局变量与基础设定 --- */
+:root {
+    --primary-color-start: #007bff;
+    --primary-color-end: #6f42c1;
+    --background-color: #f8f9fa;
+    --card-background-color: #ffffff;
+    --text-color: #212529;
+    --text-color-muted: #6c757d;
+    --border-color: #dee2e6;
+    --shadow-color: rgba(0, 0, 0, 0.08);
+    --shadow-color-hover: rgba(0, 0, 0, 0.15);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans SC', sans-serif; background-color: var(--background-color); color: var(--text-color); line-height: 1.6; }
+.container { max-width: 960px; margin: 0 auto; padding: 0 15px; }
+a { color: var(--primary-color-start); text-decoration: none; }
+img { max-width: 100%; height: auto; display: block; }
+
+/* --- 2. 布局组件 (全局共用) --- */
+
+/* 2.1 导航栏 */
+.navbar {
+    position: sticky; top: 0; z-index: 1000;
+    padding: 1.2rem 0;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+.navbar .container { display: flex; justify-content: space-between; align-items: center; }
+.navbar .logo { display: flex; align-items: center; gap: 12px; transition: transform 0.3s ease; }
+.navbar .logo:hover { transform: scale(1.05); }
+.logo-text { font-size: 1.3rem; font-weight: 700; color: var(--text-color); }
+.navbar nav ul { list-style: none; display: flex; align-items: center; gap: 10px; }
+.navbar nav a { color: var(--text-color-muted); font-weight: 700; padding: 8px 16px; border-radius: 8px; transition: all 0.3s ease; }
+.navbar nav a:hover { color: var(--text-color); background-color: rgba(0, 0, 0, 0.05); }
+.navbar nav a.active { background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end)); color: white; box-shadow: 0 2px 10px rgba(0, 123, 255, 0.3); }
+
+/* 2.2 主内容区 */
+main { padding: 40px 0; }
+h1, h2, h3 { font-weight: 700; }
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.25rem; }
+
+/* 2.3 页脚 */
+.footer { text-align: center; padding: 20px 0; margin-top: 40px; color: var(--text-color-muted); border-top: 1px solid var(--border-color); }
+.tool-container + .footer { margin-top: 0; border-top: none; padding-top: 30px; }
+
+/* 2.4 返回顶部按钮 */
+#back-to-top-btn {
+    display: none; position: fixed; bottom: 30px; right: 30px; z-index: 99;
+    width: 50px; height: 50px; border-radius: 50%;
+    border: none; outline: none; cursor: pointer;
+    background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end));
+    color: white; font-size: 24px; font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.3s, transform 0.3s;
+}
+#back-to-top-btn:hover { transform: scale(1.1); }
+
+
+/* =================================================== */
+/*               ★ 3. 特定页面样式 ★                 */
+/* =================================================== */
+
+/* --- 3.1 首页 (index.html) --- */
+.hero { text-align: center; padding: 80px 0; position: relative; background-image: url('/static/img/ark.png'); background-size: cover; background-position: center; background-repeat: no-repeat; }
+.hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 1; }
+.hero .container { position: relative; z-index: 2; }
+.hero h1 { color: white; font-size: 2.8rem; margin-bottom: 15px; }
+.hero p { font-size: 1.2rem; color: rgba(255, 255, 255, 0.9); }
+.projects { padding: 60px 0; }
+.section-title { text-align: center; margin-bottom: 40px; position: relative; padding-bottom: 15px; }
+.section-title::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 60px; height: 4px; background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end)); border-radius: 2px; }
+.project-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+.card { background-color: var(--card-background-color); border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-color); overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; }
+.card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px var(--shadow-color-hover); }
+.card a { display: block; color: inherit; text-decoration: none; }
+.card img { width: 100%; height: 180px; object-fit: cover; }
+.card-content { padding: 20px; }
+.card-content h3 { margin-bottom: 10px; }
+.card-content p { color: var(--text-color-muted); }
+.card.placeholder { display: flex; align-items: center; justify-content: center; text-align: center; border: 2px dashed var(--border-color); }
+
+/* --- 3.2 漫画查看器 (jm-viewer.html) --- */
+.tool-container {
+    max-width: 800px; margin: 0 auto;
+    background-color: var(--card-background-color);
+    border-radius: 12px;
+    padding: 30px 40px;
+    box-shadow: 0 8px 30px var(--shadow-color);
+    border: 1px solid var(--border-color);
+}
+.tool-container h1 { background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent; }
+.tool-container h2 { border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
+.search-box { display: flex; gap: 15px; margin-bottom: 25px; }
+#search-input { flex-grow: 1; padding: 12px 15px; font-size: 16px; border: 2px solid var(--border-color); border-radius: 8px; transition: border-color 0.2s, box-shadow 0.2s; }
+#search-input:focus { outline: none; border-color: var(--primary-color-start); box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2); }
+#search-button { padding: 12px 25px; border: none; border-radius: 8px; background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end)); color: white; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+#search-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3); }
+#search-button:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+#series-selector { margin: 30px 0; }
+.series-list, #cache-list { list-style: none; padding: 0; }
+.series-list li button { width: 100%; padding: 12px 15px; margin-bottom: 8px; background-color: var(--background-color); border: 1px solid var(--border-color); border-radius: 8px; text-align: left; cursor: pointer; font-size: 1em; transition: border-color 0.2s, transform 0.2s; }
+.series-list li button:hover { border-color: var(--primary-color-start); transform: translateX(5px); }
+#chapter-nav { display: none; justify-content: space-between; align-items: center; margin: 25px 0; padding: 12px; background-color: var(--background-color); border-radius: 8px; }
+#chapter-nav h2 { margin: 0 15px; border: none; padding: 0; }
+#chapter-nav button { padding: 8px 16px; border: none; background: var(--primary-color-start); color: white; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; }
+#chapter-nav button:hover:not(:disabled) { background: var(--primary-color-end); }
+#chapter-nav button:disabled { background-color: #ccc; cursor: not-allowed; }
+#viewer { padding: 10px; border: 1px dashed var(--border-color); border-radius: 8px; min-height: 100px; display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; }
+#viewer img { max-width: 100%; border-radius: 4px; box-shadow: 0 4px 10px var(--shadow-color); }
+.status { font-size: 1.1em; color: var(--text-color-muted); padding: 40px 0; text-align: center; }
+.error { color: #dc3545; font-weight: 700; }
+#load-more-button { display: none; margin: 25px auto; padding: 12px 30px; font-size: 16px; font-weight: 700; color: var(--primary-color-start); background-color: transparent; border: 2px solid var(--primary-color-start); border-radius: 25px; cursor: pointer; transition: all 0.2s; }
+#load-more-button:hover { background: var(--primary-color-start); color: white; box-shadow: 0 2px 10px rgba(0, 123, 255, 0.2); }
+#cache-list-container { margin-top: 60px; padding-top: 40px; }
+#cache-list-container h2 { text-align: center; margin-bottom: 30px; }
+#cache-list li button { width: 100%; padding: 12px 15px; margin-bottom: 8px; background-color: var(--background-color); border: 1px solid var(--border-color); border-radius: 8px; text-align: left; cursor: pointer; font-size: 1em; transition: border-color 0.2s, transform 0.2s; display: flex; align-items: center; }
+#cache-list li button:hover { border-color: var(--primary-color-start); transform: translateX(5px); }
+#cache-list li .id-tag { font-size: 0.8em; padding: 4px 10px; background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end)); color: white; border-radius: 12px; margin-right: 15px; flex-shrink: 0; }
+#fullscreen-toggle { position: absolute; top: 20px; right: 20px; z-index: 10; width: 40px; height: 40px; background-color: rgba(0, 0, 0, 0.5); border: none; border-radius: 50%; cursor: pointer; padding: 8px; transition: background-color 0.2s; }
+#fullscreen-toggle:hover { background-color: rgba(0, 0, 0, 0.7); }
+#fullscreen-toggle svg { width: 100%; height: 100%; fill: white; }
+#viewer.in-fullscreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; overflow-y: scroll; z-index: 9999; padding: 0; border: none; }
+#viewer.in-fullscreen img { margin: 0 auto; border-radius: 0; }
+body:has(#viewer.in-fullscreen) .navbar, body:has(#viewer.in-fullscreen) .footer, body:has(#viewer.in-fullscreen) #back-to-top-btn { display: none !important; }
+
+/* --- 3.3 留言板 (guestbook.html) & 网址大全 (urls.html) 共享样式 --- */
+.page-header { text-align: center; margin-bottom: 40px; padding-top: 20px;}
+.page-header h1 { background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent; margin-bottom: 10px; }
+.page-header p { font-size: 1.1rem; color: var(--text-color-muted); }
+.content-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 20px; }
+.content-card { background: var(--card-background-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-color); transition: box-shadow 0.2s, transform 0.2s; }
+.content-card:hover { box-shadow: var(--shadow-color-hover); transform: translateY(-3px); }
+.admin-form { display: flex; flex-direction: column; gap: 15px; background: var(--background-color); padding: 30px; border-radius: 12px; margin-bottom: 40px; }
+.admin-form input, .admin-form textarea { width: 100%; padding: 12px 15px; font-size: 16px; border: 1px solid var(--border-color); border-radius: 8px; font-family: inherit; }
+.admin-form textarea { resize: vertical; }
+.admin-form button { align-self: flex-end; padding: 10px 25px; font-size: 16px; font-weight: 700; color: white; background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end)); border: none; border-radius: 8px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.admin-form button:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3); }
+
+/* --- 3.3.1 留言板特定样式 --- */
+.message-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.message-header > div { display: flex; align-items: center; }
+.message-author { font-weight: 700; font-size: 1.1rem; }
+.message-timestamp { font-size: 0.85rem; color: var(--text-color-muted); }
+.message-content { margin-bottom: 20px; white-space: pre-wrap; word-wrap: break-word; }
+.message-actions { display: flex; align-items: center; gap: 20px; }
+.action-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-size: 0.9rem; color: var(--text-color-muted); transition: color 0.2s; }
+.action-btn:hover { color: var(--primary-color-start); }
+.action-btn svg { width: 16px; height: 16px; fill: currentColor; }
+.action-btn.delete-btn { color: #dc3545; margin-left: auto; font-weight: bold; }
+.action-btn.delete-btn:hover { background-color: rgba(220, 53, 69, 0.1); }
+.replies-container { margin-top: 20px; margin-left: 20px; padding-left: 20px; border-left: 2px solid var(--border-color); display: flex; flex-direction: column; gap: 15px; }
+.reply-card { background: var(--background-color); padding: 15px; border-radius: 8px; }
+
+/* --- 3.3.2 网址大全特定样式 --- */
+.url-card a { display: flex; justify-content: space-between; align-items: center; padding: 5px; color: inherit; text-decoration: none; }
+.url-info { flex-grow: 1; }
+.url-info strong { display: block; font-size: 1.1rem; color: var(--text-color); margin-bottom: 5px; }
+.url-info span { font-size: 0.9rem; color: var(--text-color-muted); word-break: break-all; }
+.url-card .delete-btn { background: #dc3545; color: white; border: none; width: 50px; height: 50px; font-size: 1.5rem; cursor: pointer; transition: background-color 0.2s; border-radius: 8px; margin-left: 15px;}
+.url-card .delete-btn:hover { background: #c82333; }
+
+/* --- 3.4 登录页 (login.html) --- */
+.login-wrapper { display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: var(--background-color); }
+.login-container { width: 100%; max-width: 400px; padding: 40px; background-color: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); text-align: center; }
+.login-container .logo { margin-bottom: 20px; display: inline-block; }
+.login-container h1 { margin-bottom: 30px; }
+.login-container form input { width: 100%; padding: 15px; font-size: 1rem; border: 2px solid var(--border-color); border-radius: 8px; margin-bottom: 20px; }
+.login-container form button { width: 100%; padding: 15px; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 8px; background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end)); color: white; cursor: pointer; }
+.login-error { color: #dc3545; margin-top: 20px; font-weight: bold; }
+
+/* --- 3.5 管理员与通用组件 --- */
+
+.cta-button { display: inline-block; margin-top: 30px; padding: 12px 32px; background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end)); color: white; text-decoration: none; font-size: 1.1rem; font-weight: 700; border-radius: 50px; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2); transition: all 0.3s ease; }
+.cta-button:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3); }
+
+
+/* =================================================== */
+/*               ★ 4. 移动端响应式布局 ★             */
+/* =================================================== */
+@media (max-width: 768px) {
+    /* --- 全局调整 --- */
+    main { padding: 20px 0; }
+    h1, .tool-container h1, .page-header h1 { font-size: 1.8rem; text-align: center; }
+    h2, #cache-list-container h2 { font-size: 1.5rem; }
+
+    /* --- 导航栏 --- */
+    .navbar nav { display: none; }
+    .navbar .container { justify-content: center; }
+
+    /* --- 首页 --- */
+    .hero { background-image: url('/static/img/mobile.jpg'); background-position: center top; padding: 60px 0; }
+    .project-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+    .card img { height: 120px; }
+    .card-content { padding: 15px; }
+    .card-content h3 { font-size: 1rem; }
+    .card-content p { font-size: 0.85rem; }
+
+    /* --- 工具页 --- */
+    .tool-container { padding: 25px 15px; }
+    .search-box { flex-direction: column; gap: 10px; }
+    #search-button { width: 100%; }
+    #cache-list li button { text-align: center; flex-direction: column; gap: 8px; }
+    #viewer { padding: 10px; background-color: var(--background-color); border: none; }
+    #viewer img { border-radius: 8px; }
+
+    /* --- 留言板 & 网址大全 --- */
+    .page-header { padding-top: 0; }
+    .admin-form { padding: 20px 15px; }
+    .url-card a { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .url-card .delete-btn { width: 100%; border-radius: 8px; margin-left: 0; height: 40px; font-size: 1.2rem; margin-top: 10px; }
+    
+    /* --- 通用UI元素缩小 --- */
+    #search-input, #search-button, #load-more-button, #chapter-nav button, .admin-form input, .admin-form button { padding-top: 10px; padding-bottom: 10px; font-size: 14px; }
+    .series-list li button, #cache-list li button { padding: 10px 12px; }
+    #cache-list li .id-tag { font-size: 0.75em; padding: 3px 8px; }
+    #back-to-top-btn { width: 44px; height: 44px; font-size: 20px; bottom: 20px; right: 20px; }
+}
+
+/* =================================================== */
+/*           ★ 5. 漫画查看器 - 任务队列样式 ★          */
+/* =================================================== */
+
+#task-queue-container {
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin: 30px 0;
+    padding: 20px;
+}
+
+.current-task-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background-color: var(--card-background-color);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border-left: 5px solid var(--primary-color-start);
+}
+
+.current-task-card strong {
+    font-size: 1.2rem;
+    color: var(--text-color);
+}
+.current-task-card p {
+    font-size: 0.9rem;
+    color: var(--text-color-muted);
+}
+.current-task-card code, #pending-list code, #completed-list code {
+    background-color: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.task-list-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.task-list h3 {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.task-list ul {
+    list-style: none;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.task-list li {
+    background-color: var(--card-background-color);
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    font-size: 0.95rem;
+    transition: background-color 0.2s;
+}
+
+.task-list li.status-success {
+    border-left: 4px solid #28a745;
+    color: #155724;
+    background-color: #d4edda;
+}
+.task-list li.status-error {
+    border-left: 4px solid #dc3545;
+    color: #721c24;
+    background-color: #f8d7da;
+}
+
+.dot-pending, .dot-completed {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+.dot-pending { background-color: #ffc107; }
+.dot-completed { background-color: #28a745; }
+
+
+/* 加载动画 */
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: var(--primary-color-start);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .task-list-wrapper {
+        grid-template-columns: 1fr;
+    }
+}
+/* =================================================== */
+/*           ★ 6. 样式修复与加固 ★                   */
+/* =================================================== */
+
+/* --- 6.1 章节导航按钮样式 --- */
+/* 确保按钮有一个基础样式 */
+#chapter-nav button {
+    padding: 8px 16px;
+    border: none;
+    background: var(--primary-color-start);
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+    font-weight: 700;
+}
+
+/* 悬停效果（当按钮可用时） */
+#chapter-nav button:hover:not(:disabled) {
+    background: var(--primary-color-end);
+    transform: translateY(-1px);
+}
+
+/* 禁用状态的样式，使其更清晰 */
+#chapter-nav button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    opacity: 0.7;
+}
+
+/* --- 6.2 加载更多按钮样式 --- */
+/* 确保按钮有一个基础样式 */
+#load-more-button {
+    display: none; /* 默认隐藏 */
+    margin: 25px auto;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary-color-start);
+    background-color: transparent;
+    border: 2px solid var(--primary-color-start);
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+/* 悬停效果 */
+#load-more-button:hover {
+    background: var(--primary-color-start);
+    color: white;
+    box-shadow: 0 2px 10px rgba(0, 123, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+/* 禁用状态（虽然目前用不到，但最好有） */
+#load-more-button:disabled {
+    color: #999;
+    border-color: #ccc;
+    background-color: transparent;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* =================================================== */
+/*           ★ 7. 提交按钮样式修复 ★                 */
+/* =================================================== */
+
+/* 为按钮提供一个明确、高优先级的基础样式 */
+#submit-task-button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end));
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+    flex-shrink: 0; /* 防止在flex布局中被压缩 */
+}
+
+/* 鼠标悬停时的效果（当按钮可用时） */
+#submit-task-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+/* 按钮被禁用时的样式，使其有清晰的视觉反馈 */
+#submit-task-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    color: #666;
+}
+
+/* =================================================== */
+/*           ★ 8. 章节导航UI优化 ★                  */
+/* =================================================== */
+
+/* 当章节切换按钮被禁用时，直接隐藏它们 */
+#chapter-nav button:disabled {
+    visibility: hidden; /* 使用 visibility 而不是 display:none，可以保持布局稳定 */
+}
+
+/* 确保标题在按钮隐藏时能居中 */
+#chapter-nav {
+    justify-content: center; /* 默认让内容居中 */
+}
+
+#chapter-nav h2 {
+    /* 为了在有按钮时也能正确对齐，我们可以给标题一些外边距 */
+    /* 当按钮隐藏时，这个边距会自动填充空间 */
+    margin: 0 15px;
+}
+
+/* 当按钮可见时（即 :not(:disabled)），让父容器两端对齐 */
+/* 我们使用 :has() 选择器来实现这个高级功能，现代浏览器都支持 */
+body:has(#chapter-nav button:not(:disabled)) #chapter-nav {
+    justify-content: space-between;
+}
+/* =================================================== */
+/*           ★ 9. 管理员后台样式 ★                   */
+/* =================================================== */
+
+/* 让书架的每个列表项变成 flex 容器 */
+#cache-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* 移除原有的按钮内边距，因为现在 li 本身就是容器 */
+    padding: 0; 
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    overflow: hidden; /* 防止按钮圆角溢出 */
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#cache-list li:hover {
+    border-color: var(--primary-color-start);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* 主点击按钮（漫画标题） */
+#cache-list li .manga-item-main-btn {
+    flex-grow: 1; /* 占据所有剩余空间 */
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 12px 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: inherit;
+    font-size: 1em;
+}
+
+/* 管理按钮容器 */
+.admin-actions {
+    display: flex;
+    flex-shrink: 0; /* 防止被压缩 */
+}
+
+/* 管理按钮通用样式 */
+.admin-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background-color 0.2s, transform 0.2s;
+    border-left: 1px solid var(--border-color);
+}
+.admin-btn:hover {
+    transform: scale(1.1);
+}
+
+/* 重命名按钮样式 */
+.rename-btn:hover {
+    background-color: #e9f3ff; /* 淡蓝色 */
+    color: #0056b3;
+}
+
+/* 删除按钮样式 */
+.delete-btn:hover {
+    background-color: #f8d7da; /* 淡红色 */
+    color: #721c24;
+}
+
+
+/* --- 3.6 3D模型查看器 (ply_viewer.html) --- */
+/* 注意：ply_viewer.html 的 body 已经有全屏样式了，
+   所以这里的 .tool-container-full 只是为了提供一个统一的标题和内边距 */
+.tool-container-full {
+    padding: 30px 40px; /* 与 .tool-container 保持一致的内边距 */
+}
+.tool-container-full h1 {
+    background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent; /* Fallback for browsers that don't support -webkit-text-fill-color */
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 2.5rem; /* 与 main h1 保持一致 */
+}
+
+/* --- 3.7 图片隐写工具 (hybrid_creator.html) --- */
+/* hybrid_creator.html 的 .creator-form 样式已提供，这里可以为容器提供一个统一的标题风格 */
+.creator-form h2 {
+    background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 25px;
+    text-align: center;
+    font-size: 2rem; /* 与 main h2 保持一致 */
+    border-bottom: 2px solid var(--border-color); /* 与 .tool-container h2 保持一致 */
+    padding-bottom: 10px;
+}
+.creator-form p {
+    color: var(--text-color-muted);
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 1.1em;
+}
+.creator-form .form-group input[type="file"] {
+    cursor: pointer;
+}
+.creator-form .file-info {
+    padding: 8px 10px;
+    background-color: var(--background-color);
+    border: 1px dashed var(--border-color);
+    border-radius: 6px;
+    margin-top: 5px;
+    font-size: 0.9em;
+    color: var(--text-color-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.creator-form .btn-submit {
+    margin-top: 20px;
+}
+
+
+/* --- 移动端适配 (添加到 @media (max-width: 768px) 内部) --- */
+@media (max-width: 768px) {
+    /* ... (你现有的移动端样式) ... */
+
+
+
+    /* 3D查看器和隐写工具标题在移动端调整 */
+    .tool-container-full h1, .creator-form h2 {
+        font-size: 1.8rem;
+    }
+    .tool-container-full {
+        padding: 25px 15px; /* 与 .tool-container 保持一致的移动端内边距 */
+    }
+    .creator-form {
+        padding: 25px 15px;
+    }
+    .creator-form p {
+        font-size: 1em;
+    }
+}
+#quiz-overlay {
+    position: fixed;
+    /* 关键改动：让遮罩从 70px 的位置开始，为导航栏留出空间 */
+    top: 70px; 
+    left: 0;
+    width: 100%;
+    /* 关键改动：高度是剩下的全部空间 */
+    height: calc(100% - 70px); 
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* z-index 降低一级，确保不会意外覆盖导航栏的下拉菜单（如果有的话） */
+    z-index: 9998; 
+    transition: opacity 0.5s ease-out;
+}
+
+#quiz-container {
+    background-color: #2c2c2e; /* 深色背景 */
+    color: #f2f2f7; /* 亮色文字 */
+    padding: 30px 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    max-width: 600px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 答错时的抖动动画 */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+    20%, 40%, 60%, 80% { transform: translateX(8px); }
+}
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+#quiz-container h1 {
+    margin-top: 0;
+    font-size: 2em;
+    color: #fff;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+#quiz-progress {
+    font-size: 0.9em;
+    color: #8e8e93;
+    margin-bottom: 20px;
+}
+
+#question-text {
+    font-size: 1.4em;
+    margin-bottom: 30px;
+    min-height: 50px; /* 防止高度变化 */
+}
+
+#options-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 两列布局 */
+    gap: 15px;
+}
+
+#options-container button {
+    width: 100%;
+    padding: 15px;
+    font-size: 1em;
+    font-family: 'Noto Sans SC', sans-serif;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #f2f2f7;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+#options-container button:hover {
+    background-color: #007bff;
+    transform: translateY(-2px);
+}
+
+#feedback-text {
+    margin-top: 20px;
+    font-size: 1.1em;
+    font-weight: bold;
+    min-height: 25px; /* 防止高度变化 */
+}
+
+.feedback-correct {
+    color: #34c759; /* 绿色 */
+}
+
+.feedback-incorrect {
+    color: #ff3b30; /* 红色 */
+}
+
+/* =========================================
+   Flash Message Styles (for alerts/errors)
+   ========================================= */
+.flash-message {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 4px;
+    color: #721c24; /* 深红色文字 */
+    background-color: #f8d7da; /* 浅红色背景 */
+    border: 1px solid #f5c6cb; /* 边框颜色 */
+    max-width: 600px; /* 与表单宽度保持一致 */
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* 添加一点阴影效果 */
+}
+
+/* =================================================== */
+/*           ★ 10. 用户认证模块样式 ★                */
+/*      (登录/注册/注销入口 - 适配 V4.0 风格)        */
+/* =================================================== */
+
+/* --- 10.1 导航栏用户操作区域 --- */
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* 链接之间的间距 */
+}
+
+.user-actions a, .user-actions .welcome-msg {
+    font-size: 1rem; /* 与导航项字体大小保持一致 */
+    font-weight: 700; /* 与导航项字体粗细保持一致 */
+    color: var(--text-color-muted);
+    transition: all 0.3s ease;
+}
+
+/* 普通链接（如“注销”）以及所有按钮的基础样式 */
+.user-actions a {
+    padding: 8px 16px; /* 与导航项内边距保持一致 */
+    border-radius: 8px; /* 与导航项圆角保持一致 */
+    border: 2px solid transparent; /* 添加透明边框占位，防止悬停时布局跳动 */
+    text-align: center;
+}
+
+/* ★★★ 这是核心修改：为登录按钮添加轮廓样式 ★★★ */
+.user-actions .login-btn {
+    color: var(--primary-color-start);
+    border-color: var(--primary-color-start);
+    background-color: transparent;
+}
+.user-actions .login-btn:hover {
+    color: white;
+    background-color: var(--primary-color-start);
+}
+
+/* “欢迎”信息的特殊样式 */
+.user-actions .welcome-msg {
+    padding-right: 5px; 
+    color: var(--text-color); 
+    cursor: default;
+}
+
+/* “注册”按钮的强调样式 */
+.user-actions .register-btn {
+    background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end));
+    color: white;
+    border-color: transparent; /* 确保渐变按钮的透明边框被覆盖 */
+    box-shadow: 0 2px 10px rgba(0, 123, 255, 0.2);
+}
+.user-actions .register-btn:hover {
+    color: white; 
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+
+/* --- 10.2 登录/注册页面的额外链接 --- */
+.login-container .extra-links {
+    margin-top: 25px;
+    font-size: 0.9rem;
+    color: var(--text-color-muted);
+}
+
+.login-container .extra-links a {
+    color: var(--primary-color-start);
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.login-container .extra-links a:hover {
+    color: var(--primary-color-end);
+    text-decoration: underline;
+}
+
+
+
+/* --- 10.4 移动端响应式调整 --- */
+@media (max-width: 768px) {
+    /* 在移动端，导航栏居中后，用户操作区可能会影响布局 */
+    /* 我们把它移到 logo 下方，或者提供一个菜单按钮（当前方案为简化隐藏） */
+    /* 或者，我们可以调整一下导航栏布局使其适应 */
+    .navbar .container {
+        justify-content: space-between; /* 在移动端也保持两端对齐 */
+    }
+    .navbar nav {
+        display: none; /* 隐藏主导航 */
+    }
+
+    .user-actions {
+        gap: 10px;
+    }
+    .user-actions a, .user-actions .welcome-msg {
+        font-size: 0.85rem;
+        padding: 6px 10px;
+    }
+    .user-actions .welcome-msg {
+        display: none; /* 在小屏幕上隐藏欢迎语，只保留用户名（如果需要）或直接隐藏 */
+    }
+}
+
+/* =================================================== */
+/*        ★ 10.3 登录/注册页样式 (最终 definitive 版) ★         */
+/* =================================================== */
+
+/* --- 登录/注册页的额外链接 (保持不变) --- */
+.login-container .extra-links {
+    margin-top: 25px;
+    font-size: 0.9rem;
+    color: var(--text-color-muted);
+}
+.login-container .extra-links a {
+    color: var(--primary-color-start);
+    font-weight: 600;
+}
+.login-container .extra-links a:hover {
+    color: var(--primary-color-end);
+    text-decoration: underline;
+}
+
+/* ★ 1. 提升所有表单元素的优先级并统一调小尺寸 ★ */
+.login-container form input,
+.login-container form button {
+    padding: 12px 15px; /* 从 15px 减小到 12px，整体变小 */
+    font-size: 0.95rem; /* 字体也稍微减小 */
+    height: auto; /* 确保高度由 padding 决定 */
+}
+
+/* ★ 2. 调整输入框之间的垂直间距 ★ */
+.login-container form input {
+    margin-bottom: 15px; /* 从 20px 减小到 15px，让表单更紧凑 */
+}
+
+/* --- 验证码输入区域 (核心重构) --- */
+.verification-code-group {
+    display: flex;
+    /* ★ 核心修改：减小与下方元素的间距，因为它们是一个整体 */
+    margin-bottom: 15px; 
+}
+
+/* ★ 3. 提升验证码输入框的选择器优先级，并实现视觉连接 ★ */
+.login-container form .verification-code-group input {
+    flex: 1;
+    min-width: 0;
+    margin-bottom: 0; /* 在 flex 容器内，不需要底部边距 */
+    
+    /* ★ 核心技巧：右侧边框圆角设为0，准备与按钮无缝连接 */
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    /* ★ 确保右边框在连接处不被双倍计算 */
+    border-right-width: 0px; 
+}
+
+/* ★ 4. 提升验证码按钮的选择器优先级，并实现视觉连接 ★ */
+.login-container form .verification-code-group button {
+    flex-shrink: 0;
+    white-space: nowrap;
+    width: auto;
+    padding: 12px 20px; /* 调整内边距以匹配新的高度 */
+
+    /* ★ 核心技巧：左侧边框圆角设为0，与输入框无缝连接 */
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+/* ★ 5. 当输入框聚焦时，让整个“组合体”看起来都有轮廓 ★ */
+.login-container form .verification-code-group input:focus {
+    position: relative; /* 提升层级，确保轮廓不被遮挡 */
+    z-index: 2;
+}
+.login-container form .verification-code-group input:focus + button {
+    /* 让按钮的左边框在输入框聚焦时也显示颜色 */
+    border-left: 2px solid var(--primary-color-start);
+    margin-left: -2px; /* 抵消边框带来的额外宽度 */
+}
+
+/* ★ 11. 用户头像与欢迎信息 ★ */
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-profile .avatar {
+    width: 38px;
+    height: 38px;
+    /* ★ 确保这里的圆角不是 50% ★ */
+    /* 4px 的小圆角或者 0px 的直角都很适合 */
+    border-radius: 4px; 
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background-color: #eee;
+    transition: transform 0.3s ease;
+    /* ★ 移除这个属性，因为它只对像素图有效 ★ */
+    /* image-rendering: pixelated; */
+}
+
+
+
+.user-profile .avatar:hover {
+    transform: scale(1.1) rotate(5deg); /* 添加一个有趣的悬停效果 */
+}
+
+/* 调整欢迎信息的样式 */
+.user-profile .welcome-msg {
+    font-weight: 700;
+    color: var(--text-color); /* 使用主题的深色文字 */
+}
+
+/* 为注销按钮也添加一个样式，使其不那么突兀 */
+.user-profile .logout-btn {
+    font-size: 0.9rem;
+    color: var(--text-color-muted);
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.user-profile .logout-btn:hover {
+    background-color: #f8d7da; /* 淡红色背景 */
+    color: #721c24; /* 深红色文字 */
+}
+/* =================================================== */
+/*           ★ 11. 用户头像与欢迎信息 ★                */
+/*      (这部分是您缺失的核心样式！)                */
+/* =================================================== */
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.user-profile .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background-color: #eee;
+    transition: transform 0.3s ease;
+}
+.user-profile .avatar:hover {
+    transform: scale(1.1) rotate(5deg);
+}
+.user-profile .welcome-msg {
+    font-weight: 700;
+    color: var(--text-color);
+}
+.user-profile .logout-btn {
+    font-size: 0.9rem;
+    color: var(--text-color-muted);
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s;
+}
+.user-profile .logout-btn:hover {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+/* =================================================== */
+/*           ★ 12. 首页管理员徽章 (最终版) ★          */
+/* =================================================== */
+
+.admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #4a3a00;
+    background: linear-gradient(45deg, #FFD700, #F0B90B);
+    border: 1px solid #FFC107;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: gold-pulse 2s infinite ease-in-out;
+}
+
+.admin-badge:hover {
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    transform: scale(1.05);
+    animation-play-state: paused;
+}
+
+.admin-badge svg {
+    margin-bottom: 1px;
+}
+
+@keyframes gold-pulse {
+    0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.4); }
+    50% { box-shadow: 0 0 12px rgba(255, 193, 7, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.4); }
+}
+
+/* =================================================== */
+/*           ★ 13. 用户头像链接样式 ★                   */
+/* =================================================== */
+
+a.avatar-link {
+    display: inline-block; /* 确保链接大小和图片一样 */
+    line-height: 0; /* 移除可能由链接带来的额外行高 */
+    border-radius: 50%; /* 确保链接的形状和圆形头像一致 */
+}
+
+/* =================================================== */
+/*           ★ 14. 图片隐写工具页面样式 ★              */
+/* =================================================== */
+
+.creator-container {
+    max-width: 650px; /* 稍微加宽一点以适应内容 */
+    margin: 2rem auto;
+    padding: 30px 40px; /* 使用统一的内边距 */
+    background: var(--card-background-color);
+    border-radius: 12px; /* 使用统一的圆角 */
+    box-shadow: 0 8px 30px var(--shadow-color); /* 使用统一的阴影 */
+    border: 1px solid var(--border-color); /* 添加统一的边框 */
+}
+
+.creator-container h2 {
+    text-align: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--border-color); /* 统一的标题下划线 */
+    background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.creator-container p {
+    text-align: center;
+    color: var(--text-color-muted);
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.form-group input[type="file"] {
+    display: block;
+    width: 100%;
+    font-size: 1rem;
+    padding: 8px 12px;
+    border: 2px dashed var(--border-color); /* 使用虚线边框，更形象 */
+    border-radius: 8px;
+    background-color: var(--background-color);
+    cursor: pointer;
+    transition: border-color 0.3s, background-color 0.3s;
+}
+.form-group input[type="file"]:hover {
+    border-color: var(--primary-color-start);
+    background-color: #fff;
+}
+
+.form-group .file-info {
+    font-size: 0.9em;
+    color: var(--text-color-muted);
+    margin-top: 0.75rem;
+    padding: 5px 10px;
+    background-color: #f1f1f1;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-submit {
+    display: block;
+    width: 100%;
+    padding: 15px; /* 统一的大按钮内边距 */
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end));
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-submit:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3);
+}
+
+.btn-submit:disabled,
+.btn-submit.loading {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+.btn-submit.loading::after {
+    content: '...';
+    display: inline-block;
+    animation: dots 1.5s linear infinite;
+}
+@keyframes dots { 0%, 20% { opacity: 0; } 40% { opacity: 1; } 60% { opacity: 1; } 80%, 100% { opacity: 0; } }
+
+.creator-container .hint {
+    margin-top: 1.5rem;
+    font-size: 0.9em;
+    color: var(--text-color-muted);
+    text-align: center;
+}
+
+/* =================================================== */
+/*           ★ 15. 新基础模板 (base2) 样式 ★          */
+/* =================================================== */
+
+
+/* --- 全宽导航栏 --- */
+.navbar-wide .container {
+    max-width: 1280px; /* 设定一个更宽的最大宽度 */
+}
+
+/* --- 极简用户信息 --- */
+.user-actions .avatar-link-icon {
+    display: block;
+    border-radius: 50%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.user-actions .avatar-link-icon:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.6);
+}
+/* 确保 admin 金边效果能正确应用 */
+.user-actions .avatar-link-icon .admin-avatar {
+    width: 36px;
+    height: 36px;
+}
+
+/* --- 居中大标题 --- */
+.page-header-modern {
+    padding: 3rem 0;
+    text-align: center;
+    background-color: var(--card-background-color);
+    border-bottom: 1px solid var(--border-color);
+}
+.page-header-modern h1 {
+    font-size: 2.8rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* --- 新的内容容器 (带圆角白底样式) --- */
+.page-container-modern {
+    max-width: 960px;
+    margin: 2.5rem auto;
+    
+    /* ★★★ 核心修改：添加背景、内边距、圆角和阴影 ★★★ */
+    background-color: var(--card-background-color);
+    padding: 2.5rem; /* 为容器内部提供足够的留白 */
+    border-radius: 12px;
+    box-shadow: 0 8px 30px var(--shadow-color);
+    border: 1px solid var(--border-color);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .page-header-modern {
+        padding: 2rem 0;
+    }
+    .page-header-modern h1 {
+        font-size: 2rem;
+    }
+}
+
+/* =================================================== */
+/*           ★ 17. 管理员面板入口按钮样式 ★            */
+/* =================================================== */
+
+.admin-panel-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    color: var(--text-color-muted);
+    background-color: var(--background-color);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.admin-panel-btn:hover {
+    background-color: #FFD700;
+    color: #4a3a00;
+    transform: rotate(15deg);
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.7);
+}

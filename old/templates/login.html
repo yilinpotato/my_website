@@ -1,0 +1,38 @@
+<!-- templates/login.html (黄金标准版) -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>登录 - 马的个人空间</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-container">
+            <a href="{{ url_for('index_page') }}" class="logo" aria-label="返回首页">
+                <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#007bff;"/><stop offset="100%" style="stop-color:#6f42c1;"/></linearGradient></defs><path fill-rule="evenodd" clip-rule="evenodd" d="M0 90L25 20L50 60L75 20L100 90H80L50 45L20 90H0Z" fill="url(#logo-gradient)"/></svg>
+            </a>
+            <h1>用户登录</h1>
+            <form method="POST" action="{{ url_for('login') }}">
+                <input type="text" name="username" placeholder="用户名 或 邮箱" required autofocus>
+                <input type="password" name="password" placeholder="请输入密码" required>
+                <button type="submit">登 录</button>
+            </form>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <p class="login-error">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <p class="extra-links">
+                <a href="#">忘记密码?</a> | <a href="{{ url_for('register') }}">还没有账户？去注册</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

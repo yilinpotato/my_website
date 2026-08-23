@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JM Redirect</title>
+    <meta http-equiv="refresh" content="0; url=http://127.0.0.1:5003/">
+</head>
+<body>
+    <script>
+        (function () {
+            const host = window.location.hostname;
+            if (host === '127.0.0.1' || host === 'localhost') {
+                window.location.replace('http://127.0.0.1:5003/');
+            } else {
+                window.location.replace('/jm/');
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+/* /static/style_v2.css */
+
+/* --- 变量定义 --- */
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6f42c1;
+    --text-color: #343a40;
+    --text-color-muted: #6c757d;
+    --light-text-color: #ffffff;
+    --bg-color: #f8f9fa;
+    --card-bg-color: #ffffff;
+    --border-color: #e9ecef;
+    --shadow-color: rgba(0, 0, 0, 0.08); /* 调低阴影透明度，更柔和 */
+    --gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    --font-family: 'Noto Sans SC', sans-serif;
+
+    /* ★★★ 新增：为 base2 模板补充的变量 ★★★ */
+    --background-color: var(--bg-color);
+    --card-background-color: var(--card-bg-color);
+    --primary-color-start: var(--primary-color);
+    --primary-color-end: var(--secondary-color);
+}
+
+
+/* --- 基础与重置 --- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-family); line-height: 1.6; background-color: var(--bg-color); color: var(--text-color); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+h1, h2, h3 { font-weight: 700; line-height: 1.2; }
+a { text-decoration: none; color: var(--primary-color); transition: color 0.3s ease; }
+a:hover { color: var(--secondary-color); }
+
+/* --- 导航栏 --- */
+.navbar { background-color: var(--card-bg-color); box-shadow: 0 2px 4px var(--shadow-color); padding: 1rem 0; position: sticky; top: 0; z-index: 1000; }
+.navbar .container { display: flex; justify-content: space-between; align-items: center; }
+.logo { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; font-weight: 700; color: var(--primary-color); }
+.user-actions { display: flex; align-items: center; gap: 1rem; }
+.user-profile { display: flex; align-items: center; gap: 0.75rem; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border-color); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.avatar-link:hover .avatar { transform: scale(1.1); box-shadow: 0 0 10px var(--secondary-color); }
+.welcome-msg { font-weight: 500; }
+.login-btn, .register-btn, .logout-btn { padding: 0.5rem 1rem; border-radius: 20px; font-weight: 500; transition: all 0.3s ease; }
+.login-btn { border: 1px solid var(--primary-color); color: var(--primary-color); }
+.login-btn:hover { background-color: var(--primary-color); color: var(--light-text-color); }
+.register-btn { background: var(--gradient); color: var(--light-text-color); border: none; }
+.register-btn:hover { opacity: 0.9; box-shadow: 0 4px 15px rgba(111, 66, 193, 0.4); }
+.logout-btn { color: #dc3545; }
+
+/* --- Hero Section --- */
+.hero { text-align: center; padding: 8rem 0; color: var(--light-text-color); position: relative; overflow: hidden; background: linear-gradient(rgba(20, 25, 40, 0.6), rgba(20, 25, 40, 0.8)), url('/static/img/ark.png'); background-size: cover; background-position: center center; background-repeat: no-repeat; }
+.hero h1 { font-size: 3.5rem; margin-bottom: 1rem; text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7); }
+.hero p { font-size: 1.5rem; font-weight: 300; opacity: 0.95; text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.7); }
+
+/* --- 通用 Section 样式 --- */
+section { padding: 4rem 0; }
+.section-title { text-align: center; font-size: 2.5rem; margin-bottom: 3rem; position: relative; padding-bottom: 1rem; }
+.section-title::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 80px; height: 4px; background: var(--gradient); border-radius: 2px; }
+
+/* --- Dashboard 个人状态概览 (桌面端) --- */
+.dashboard { background-color: #e9ecef; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; }
+.stat-card { background-color: var(--card-bg-color); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px var(--shadow-color); text-align: center; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.stat-card:hover { transform: translateY(-10px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); }
+.stat-icon svg { width: 48px; height: 48px; color: var(--primary-color); margin-bottom: 1rem; }
+.stat-value { font-size: 2.5rem; font-weight: 700; color: var(--secondary-color); }
+.stat-label { font-size: 1rem; color: var(--text-color-muted); }
+
+/* --- Projects 操作台 --- */
+.project-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+.card { background: var(--card-bg-color); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px var(--shadow-color); display: flex; flex-direction: column; transition: transform 0.3s ease, box-shadow 0.3s ease; color: var(--text-color); text-align: center; padding: 2rem 1.5rem; }
+.card:hover { transform: translateY(-10px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); }
+.card-content { padding: 0; }
+.card-content h3 { margin-bottom: 0.5rem; }
+.card-content p { color: var(--text-color-muted); }
+.card-icon { margin-bottom: 1.5rem; color: var(--primary-color); }
+.card-icon svg { width: 50px; height: 50px; }
+
+/* --- Knowledge 运动小贴士 --- */
+.tip-card { background: var(--card-bg-color); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px var(--shadow-color); max-width: 800px; margin: 0 auto; text-align: center; position: relative; }
+.tip-card h3 { margin-bottom: 1rem; font-size: 1.5rem; }
+.tip-card p { font-size: 1.1rem; color: #495057; min-height: 50px; }
+#refresh-tip-btn { position: absolute; top: 1rem; right: 1rem; background: transparent; border: none; cursor: pointer; color: #adb5bd; transition: color 0.3s ease, transform 0.3s ease; }
+#refresh-tip-btn:hover { color: var(--primary-color); transform: rotate(180deg); }
+
+/* --- 技术与团队介绍 --- */
+.tech-team { background: #f7f9fb; padding-bottom: 5rem; }
+.tech-team .section-title { margin-bottom: 2rem; }
+.tech-team .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 30px; }
+.tech-team .info-card { background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08); border: 1px solid rgba(111, 66, 193, 0.08); }
+.tech-team .info-card dl { margin: 0; }
+.tech-team .info-card dt { font-weight: 600; color: #495057; }
+.tech-team .info-card dd { margin: 0 0 16px 0; color: #212529; }
+.tech-team .info-card ul { margin: 0; padding-left: 18px; color: #212529; }
+.tech-team .info-card.highlight { background: linear-gradient(135deg, #edf2ff, #fff); }
+.architecture-block,
+.team-block,
+.innovation-block { margin-top: 40px; }
+.architecture-block p { color: #495057; }
+.architecture-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+.architecture-grid article { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05); border: 1px solid rgba(0, 0, 0, 0.04); }
+.architecture-grid h4 { margin-top: 0; }
+.architecture-grid ul { padding-left: 18px; color: #333; }
+.team-table-wrapper { overflow-x: auto; margin-top: 20px; }
+.team-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08); }
+.team-table th, .team-table td { padding: 16px; border-bottom: 1px solid #f1f3f5; text-align: left; }
+.team-table th { background: #f8f9fa; font-weight: 600; }
+.team-table tr:last-child td { border-bottom: none; }
+.innovation-list { margin: 20px 0 0 20px; color: #212529; }
+.innovation-list li { margin-bottom: 12px; line-height: 1.6; }
+.tech-page-actions { text-align: center; margin-top: 40px; }
+.back-home-link { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 999px; border: 1px solid var(--primary-color); color: var(--primary-color); font-weight: 600; transition: all 0.3s ease; }
+.back-home-link:hover { background: var(--primary-color); color: var(--light-text-color); box-shadow: 0 8px 20px rgba(0, 123, 255, 0.2); }
+
+/* --- Footer --- */
+.footer { background-color: #343a40; color: rgba(255, 255, 255, 0.7); padding: 3rem 0; text-align: center; }
+.footer .container { display: flex; flex-direction: column; gap: 1rem; }
+.team-info .divider { margin: 0 10px; }
+.project-description { max-width: 800px; margin: 0 auto; font-size: 0.9rem; opacity: 0.8; }
+.copyright { margin-top: 1rem; opacity: 0.6; }
+
+/* --- 动画效果 --- */
+.fade-in-up { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+.fade-in-up.is-visible { opacity: 1; transform: translateY(0); }
+
+
+/* =================================================== */
+/*           ★ 新基础模板 (base2) 样式 ★               */
+/* =================================================== */
+.navbar-wide .container { max-width: 1280px; }
+.user-actions .avatar-link-icon { display: block; border-radius: 50%; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.user-actions .avatar-link-icon:hover { transform: scale(1.1); box-shadow: 0 0 15px rgba(0, 123, 255, 0.6); }
+.user-actions .avatar-link-icon .admin-avatar { width: 36px; height: 36px; }
+.page-header-modern { padding: 3rem 0; text-align: center; background-color: var(--card-background-color); border-bottom: 1px solid var(--border-color); }
+.page-header-modern h1 { font-size: 2.8rem; font-weight: 900; letter-spacing: 1px; background: linear-gradient(45deg, var(--primary-color-start), var(--primary-color-end)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.page-container-modern { max-width: 960px; margin: 2.5rem auto; background-color: var(--card-background-color); padding: 2.5rem; border-radius: 12px; box-shadow: 0 8px 30px var(--shadow-color); border: 1px solid var(--border-color); }
+
+/* =================================================== */
+/*           ★ 管理员面板入口按钮样式 ★                */
+/* =================================================== */
+.admin-panel-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; color: var(--text-color-muted); background-color: var(--background-color); border-radius: 50%; transition: all 0.3s ease; }
+.admin-panel-btn:hover { background-color: #FFD700; color: #4a3a00; transform: rotate(15deg); box-shadow: 0 0 12px rgba(255, 215, 0, 0.7); }
+
+
+@media (max-width: 768px) {
+    .hero h1 { font-size: 2.5rem; }
+    .hero p { font-size: 1.2rem; }
+    .section-title { font-size: 2rem; }
+
+    /* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ */
+    /* ★★★   开始修改：用下面的代码替换你原来的 .navbar 样式   ★★★ */
+    /* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ */
+
+    /* 1. 保持导航栏容器为水平布局，但减小内边距 */
+    .navbar .container {
+        /* 移除 flex-direction: column; */
+        padding-left: 15px;
+        --secondary-color: #6f42c1;
+        --text-color: #343a40;
+        --text-color-muted: #6c757d;
+        --light-text-color: #ffffff;
+        --bg-color: #f8f9fa;
+        --card-bg-color: #ffffff;
+        --border-color: #e9ecef;
+        --shadow-color: rgba(0, 0, 0, 0.08);
+        --gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        --font-family: 'Noto Sans SC', sans-serif;
+        --background-color: var(--bg-color);
+        --card-background-color: var(--card-bg-color);
+        --primary-color-start: var(--primary-color);
+        --primary-color-end: var(--secondary-color);
+    /* 5. 确保头像尺寸不会过大 */
+    .avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* ★★★ 核心修复：手机端状态栏折叠效果 ★★★ */
+    /* 这是您要的折叠效果，它没有被删除，只是改变了显示方式 */
+    .stat-grid {
+        display: block;
+        background-color: var(--card-bg-color);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px var(--shadow-color);
+        padding: 1rem;
+        gap: 0;
+    }
+    .stat-card {
+        display: flex;
+        align-items: center;
+        text-align: left;
+        box-shadow: none;
+        padding: 1rem 0;
+        border-radius: 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .stat-card:last-child { border-bottom: none; padding-bottom: 0; }
+    .stat-card:first-child { padding-top: 0; }
+    .stat-icon { margin-right: 1rem; }
+    .stat-icon svg { width: 36px; height: 36px; margin-bottom: 0; }
+    .stat-card > div:not(.stat-icon) { flex-grow: 1; }
+    .stat-value { font-size: 1.5rem; line-height: 1.2; }
+    .stat-label { font-size: 0.9rem; }
+
+    /* base2 模板的响应式调整 */
+    .page-header-modern { padding: 2rem 0; }
+    .page-header-modern h1 { font-size: 2rem; }
+}
+
+/* =================================================== */
+/*           ★ 管理员注销徽章样式 (V2) ★               */
+/* =================================================== */
+
+.admin-badge {
+    display: inline-flex; /* 使用 inline-flex 布局 */
+    align-items: center;
+    gap: 0.4rem; /* 图标和文字之间的间距 */
+    padding: 0.3rem 0.8rem;
+    border-radius: 1rem; /* 圆角胶囊形状 */
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none; /* 防止文字被选中 */
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    
+    /* ★★★ 核心修改：默认金色样式 ★★★ */
+    background: linear-gradient(145deg, #fce574, #f0c300);
+    color: #4a3a00;
+    border: 1px solid #e6b400;
+    box-shadow: 0 2px 5px rgba(255, 215, 0, 0.3), 
+                inset 0 -1px 1px rgba(0,0,0,0.1);
+}
+
+.admin-badge svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ★★★ 核心修改：增强的鼠标悬停特效 ★★★ */
+.admin-badge:hover {
+    transform: translateY(-2px) scale(1.05); /* 向上浮动并放大 */
+    box-shadow: 0 5px 12px rgba(255, 215, 0, 0.5), /* 增强光晕 */
+                inset 0 -1px 1px rgba(0,0,0,0.1);
+    background: linear-gradient(145deg, #ffd700, #f8ca00); /* 悬停时更亮 */
+}
+
+.admin-badge:active {
+    transform: translateY(0) scale(1.02); /* 点击时的按压效果 */
+    box-shadow: 0 2px 5px rgba(255, 215, 0, 0.3), 
+                inset 0 1px 2px rgba(0,0,0,0.2);
+}
