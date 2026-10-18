@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <script>window.SCRIPT_ROOT = "{{ request.script_root }}";</script>
 </head>
 <body>
     <!-- 1. 导航栏现在在 wrapper 的外面，所以它一直可见 -->
@@ -279,7 +280,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         async function checkAdminStatus() {
             try {
-                const response = await fetch('/api/check_admin');
+                const response = await fetch(SCRIPT_ROOT + '/api/check_admin');
                 const data = await response.json();
                 isAdmin = data.isAdmin || false;
             } catch (error) {
@@ -290,7 +291,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         async function loadCacheList() {
             try {
-                const response = await fetch('/api/get_cache_list');
+                const response = await fetch(SCRIPT_ROOT + '/api/get_cache_list');
                 const data = await response.json();
                 
                 cacheList.innerHTML = '';
@@ -341,7 +342,7 @@ document.addEventListener("DOMContentLoaded", function() {
             if (newDirName && newDirName.trim() !== "" && newDirName !== oldDirName) {
                 if (!confirm(`确定要将 "${oldDirName}" 重命名为 "${newDirName}" 吗？`)) return;
                 try {
-                    const response = await fetch('/api/manga_manager', {
+                    const response = await fetch(SCRIPT_ROOT + '/api/manga_manager', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ action: 'rename', payload: { old_dir_name: oldDirName, new_dir_name: newDirName.trim() } })
@@ -359,7 +360,7 @@ document.addEventListener("DOMContentLoaded", function() {
         async function handleDelete(dirName) {
             if (confirm(`【警告】\n确定要永久删除文件夹 "${dirName}" 吗？\n此操作不可恢复！`)) {
                 try {
-                    const response = await fetch('/api/manga_manager', {
+                    const response = await fetch(SCRIPT_ROOT + '/api/manga_manager', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ action: 'delete', payload: { dir_name: dirName } })
@@ -395,7 +396,7 @@ document.addEventListener("DOMContentLoaded", function() {
             submitTaskButton.disabled = true;
             submitTaskButton.textContent = '处理中...';
             try {
-                const response = await fetch('/api/submit_manga_tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: ids }) });
+                const response = await fetch(SCRIPT_ROOT + '/api/submit_manga_tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: ids }) });
                 const data = await response.json();
                 if (!response.ok && response.status !== 202) throw new Error(data.error || '提交失败');
                 if (data.status === 'partial_cached' || data.status === 'all_cached') {
@@ -423,7 +424,7 @@ document.addEventListener("DOMContentLoaded", function() {
         async function processCompletedBatch(idList) {
             console.log("处理批次:", idList);
             try {
-                const response = await fetch('/api/get_cache_list');
+                const response = await fetch(SCRIPT_ROOT + '/api/get_cache_list');
                 if (!response.ok) throw new Error("无法获取最新的书架列表");
                 const fullCacheList = await response.json();
                 const newSeriesData = [];
@@ -444,7 +445,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         async function fetchTaskStatus() {
             try {
-                const response = await fetch('/api/get_task_status');
+                const response = await fetch(SCRIPT_ROOT + '/api/get_task_status');
                 if (!response.ok) return;
                 const data = await response.json();
                 renderTaskStatus(data);
@@ -473,7 +474,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         
         async function fetchSeriesAndImages(mangaId, dirName = null) {
-            let url = `/api/fetch_manga?id=${mangaId}`;
+            let url = `${SCRIPT_ROOT}/api/fetch_manga?id=${mangaId}`;
             if (dirName) {
                 url += `&dir=${encodeURIComponent(dirName)}`;
             }

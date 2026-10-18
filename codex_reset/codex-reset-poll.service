@@ -1,0 +1,19 @@
+[Unit]
+Description=Fetch Codex resets and deliver queued email
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=codex-reset
+Group=codex-reset
+WorkingDirectory=/opt/codex-reset
+Environment=RESET_CONFIG=/etc/codex-reset/config.json
+ExecStart=/home/myl/my_website/venv/bin/python /opt/codex-reset/core.py
+TimeoutStartSec=300
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/codex-reset
+PrivateTmp=true
+UMask=0077

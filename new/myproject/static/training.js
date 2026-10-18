@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const actionSelect = document.getElementById('action-select');
     
     const trainingContext = window.TRAINING_CONTEXT || {};
+    const SCRIPT_ROOT = window.SCRIPT_ROOT || '';
 
     // ★★★ 新增：自动/手动模式切换 ★★★
     const autoModeIndicator = document.getElementById('auto-mode-indicator');
@@ -84,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 params.set('action', actionName);
             }
             const query = params.toString();
-            const response = await fetch(`/api/muscle_usage${query ? `?${query}` : ''}`);
+            const response = await fetch(`${SCRIPT_ROOT}/api/muscle_usage${query ? `?${query}` : ''}`);
             if (!response.ok) throw new Error('无法获取肌群数据');
             const payload = await response.json();
             if (requestId !== muscleRequestSeq) return;
@@ -379,7 +380,7 @@ const WEBSOCKET_URL = `${wsProtocol}://${window.location.hostname}:14427`;
         if (httpRequestInFlight) return;
         httpRequestInFlight = true;
         try {
-            const resp = await fetch('/api/process_pose', {
+            const resp = await fetch(SCRIPT_ROOT + '/api/process_pose', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -619,7 +620,7 @@ const WEBSOCKET_URL = `${wsProtocol}://${window.location.hostname}:14427`;
             duration_seconds: durationSeconds,
             reps
         };
-        const response = await fetch('/api/training/export_frames', {
+        const response = await fetch(SCRIPT_ROOT + '/api/training/export_frames', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -762,7 +763,7 @@ const WEBSOCKET_URL = `${wsProtocol}://${window.location.hostname}:14427`;
                 avg_score: parseFloat(avgScore.toFixed(1))
             };
 
-            const response = await fetch('/api/save_training_session', {
+            const response = await fetch(SCRIPT_ROOT + '/api/save_training_session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

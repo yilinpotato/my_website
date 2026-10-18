@@ -38,6 +38,7 @@ load_dotenv()
 # ===================================================
 app = Flask(__name__)
 
+
 # ★★★ 支持反向代理环境，修复 url_for 生成的路径 ★★★
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 

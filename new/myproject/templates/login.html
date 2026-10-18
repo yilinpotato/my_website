@@ -21,6 +21,14 @@
                 <button type="submit">登 录</button>
             </form>
 
+            <div class="quick-login">
+                <span>或</span>
+                <form method="POST" action="{{ url_for('quick_login') }}">
+                    <button type="submit" class="quick-login-btn">⚡ 快速登录</button>
+                </form>
+                <small>基于当前网络生成匿名访客账户；不用于管理员权限。</small>
+            </div>
+
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}

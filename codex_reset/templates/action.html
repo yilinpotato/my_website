@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ title }} · Codex 重置提醒</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f6f0;color:#142923;font:16px/1.8 system-ui,-apple-system,"Segoe UI",sans-serif}main{max-width:620px;margin:auto;padding:40px 20px}nav{font-size:13px;font-weight:700;letter-spacing:.06em;margin-bottom:56px}a{color:#176746;text-underline-offset:4px}nav a{text-decoration:none}.card{background:#fff;border:1px solid #d8e2da;border-radius:22px;padding:44px 36px;text-align:center}.icon{width:60px;height:60px;border-radius:50%;background:#e9f3e9;color:#176746;display:grid;place-items:center;margin:0 auto 24px;font-size:28px}.tag{color:#176746;font-size:11px;font-weight:700;letter-spacing:.15em}h1{font-size:34px;line-height:1.3;margin:12px 0 18px}p{color:#586c64;margin:0 0 26px}.button{display:block;width:100%;background:#176746;color:white;border:0;border-radius:12px;padding:17px 20px;font:700 18px/1.5 system-ui;text-decoration:none;cursor:pointer}.button:hover{background:#105036}.secondary{display:inline-block;margin-top:22px;font-size:14px}button:focus-visible,a:focus-visible{outline:3px solid #97cdb0;outline-offset:4px}footer{text-align:center;color:#586c64;font-size:12px;margin-top:24px}@media(max-width:480px){main{padding:24px 16px}nav{margin-bottom:32px}.card{padding:32px 22px}h1{font-size:29px}}
+</style></head><body><main>
+<nav><a href="{{ url_for('index') }}">POTATOMA / RESET WATCH</a></nav>
+<section class="card"><div class="icon" aria-hidden="true">{{ '→' if action else '✓' if title in ('订阅已生效','已退订') else '✉' }}</div><div class="tag">CODEX · EMAIL ALERTS</div><h1>{{ title }}</h1><p role="status">{{ message }}</p>
+{% if action %}<form method="post"><input type="hidden" name="csrf" value="{{ session.csrf }}"><button class="button">{{ '确认订阅，开启提醒' if action=='confirm' else '确认退订' }}</button></form><a class="secondary" href="{{ url_for('index') }}">返回首页</a>
+{% else %}<a class="button" href="{{ url_for('index') }}">返回提醒首页</a>{% endif %}
+</section><footer>验证后才会收到提醒 · 每封邮件均可退订</footer>
+</main></body></html>

@@ -27,6 +27,18 @@
             box-shadow: 0 2px 4px var(--shadow-color);
         }
 
+        .server-capacity-notice {
+            max-width: 1280px;
+            margin: 0 auto 1.5rem;
+            padding: 1rem 1.25rem;
+            border: 1px solid #f0c36d;
+            border-radius: 12px;
+            background: #fff8e6;
+            color: #754d00;
+            line-height: 1.6;
+        }
+        .server-capacity-notice strong { color: #5c3d00; }
+
         /* ★★★ 修改：训练页面布局，减小间距使其更紧凑 ★★★ */
         .training-container {
             display: grid;
@@ -386,6 +398,10 @@
             <h1>实时训练仪表盘</h1>
         </header>
 
+        <div class="server-capacity-notice" role="status">
+            <strong>功能提示：</strong>由于当前服务器性能限制，设计中的深度学习评估功能暂未启用；基础姿态识别与实时训练功能仍可正常使用。
+        </div>
+
         <div class="training-container">
             <!-- 左侧：视频和控制 -->
             <div class="video-panel">
@@ -550,10 +566,12 @@
     <script src="{{ url_for('static', filename='muscle_highlighter.js') }}"></script>
 
     <script>
+        window.SCRIPT_ROOT = "{{ request.script_root }}";
         window.TRAINING_CONTEXT = {
             userWeight: {{ current_user.weight or 70 }},
             username: "{{ current_user.username }}",
-            forceShowSplatDemo: true
+            forceShowSplatDemo: true,
+            splatDemoPath: "{{ request.script_root }}/static/models/example.splat"
         };
     </script>
     <!-- 引入我们自己的JS逻辑 -->

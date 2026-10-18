@@ -18,6 +18,7 @@
         .export-btn { padding: 10px 20px; font-weight: 700; background: #28a745; color: white; border: none; border-radius: 6px; text-decoration: none; transition: background-color 0.3s; }
         .export-btn:hover { background: #218838; }
     </style>
+    <script>window.SCRIPT_ROOT = "{{ request.script_root }}";</script>
 </head>
 <body>
     <header class="navbar navbar-wide">
@@ -160,11 +161,11 @@
                     // 如果已是管理员，则提示注销管理员权限
                     if (isAdmin) {
                         if (confirm("您已是管理员。确定要注销管理员权限吗？(这不会注销您的普通用户登录)")) {
-                            window.location.href = '/admin/logout'; // 使用专门的管理员注销路由
+                            window.location.href = SCRIPT_ROOT + '/admin/logout'; // 使用专门的管理员注销路由
                         }
                     } else {
                         // 否则，跳转到管理员登录页面
-                        window.location.href = '/admin/login'; // 指向专门的管理员登录页
+                        window.location.href = SCRIPT_ROOT + '/admin/login'; // 指向专门的管理员登录页
                     }
                     return;
                 }

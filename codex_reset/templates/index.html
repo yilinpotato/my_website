@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Codex 重置提醒 · Potatoma</title>
+  <style>
+    :root{color-scheme:light;--ink:#142923;--muted:#586c64;--line:#d8e2da;--green:#176746}
+    *{box-sizing:border-box}body{margin:0;background:#f5f6f0;color:var(--ink);font:16px/1.7 system-ui,-apple-system,"Segoe UI",sans-serif}
+    main{max-width:1080px;margin:auto;padding:32px 24px 64px}a{color:var(--green);text-underline-offset:4px}
+    nav{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:20px;font-size:14px}
+    .brand{text-decoration:none;font-weight:750;letter-spacing:.06em}.tag{font-size:12px;letter-spacing:.14em;color:var(--green);font-weight:700}
+    header{padding:55px 0 32px;max-width:760px}h1{font-size:clamp(34px,5.5vw,58px);line-height:1.18;letter-spacing:-.045em;margin:12px 0 22px}
+    h2{font-size:22px;margin:0 0 10px}p{margin:10px 0;color:var(--muted)}.intro{font-size:18px;max-width:640px}
+    .grid{display:grid;grid-template-columns:1fr 1.12fr;gap:26px;align-items:start}.card{padding:28px;border:1px solid var(--line);border-radius:18px;background:#fff}
+    label{display:block;margin:18px 0 7px;font-size:14px;font-weight:650}input[type=email]{font:inherit;width:100%;padding:13px 14px;border:1px solid #aabfb2;border-radius:9px;background:#fcfdf9}
+    fieldset{border:0;padding:0;margin:22px 0}legend{font-size:14px;font-weight:650}.check{display:flex;gap:10px;font-weight:400;margin:10px 0;align-items:center}input[type=checkbox]{width:18px;height:18px;accent-color:var(--green)}
+    button{border:0;border-radius:9px;padding:13px 20px;background:var(--green);color:white;font:600 16px/1.5 system-ui;cursor:pointer;width:100%}button:hover{background:#105036}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #97cdb0;outline-offset:3px}
+    .small{font-size:13px}.notice{border-left:4px solid var(--green);padding:18px 22px;background:#e9f3e9;border-radius:8px;margin:0 0 24px}.notice p{color:var(--ink)}.notice form{max-width:280px;margin-top:16px}
+    .status{display:flex;gap:8px;align-items:center;font-size:13px;margin-bottom:24px;color:var(--muted)}.dot{width:8px;height:8px;border-radius:50%;background:#207a52;flex:none}.warning .dot{background:#b47718}
+    .event{padding:18px 0;border-top:1px solid var(--line)}.event-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.pill{font-size:12px;padding:3px 9px;border-radius:6px;background:#edf4ec;color:#216343}.upcoming{background:#fff3da;color:#866016}.banked{background:#eeeafd;color:#63509b}time{font-size:12px;color:var(--muted)}.event a{font-size:14px}.event p{font-size:13px;margin:8px 0}
+    footer{margin-top:32px;border-top:1px solid var(--line);padding-top:20px;font-size:12px;color:var(--muted)}.trap{position:absolute;left:-10000px}
+    @media(max-width:720px){main{padding:24px 18px 40px}header{padding-top:35px}.grid{grid-template-columns:1fr}.card{padding:22px}.event-head{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body><main>
+  <nav><a class="brand" href="{{ url_for('index') }}">POTATOMA / RESET WATCH</a><a href="/">返回主页 ↗</a></nav>
+  <header><div class="tag">CODEX · EMAIL ALERTS</div><h1>重置有消息，<br>邮件告诉你。</h1><p class="intro">关注重置预告、公开重置记录和额外额度发放。验证邮箱后，收到新公告提醒；随时可以退订。</p></header>
+  {% if message %}<section class="notice" role="status"><p>{{ message }}</p>{% if action %}<form method="post"><input type="hidden" name="csrf" value="{{ session.csrf }}"><button>{{ '确认订阅' if action == 'confirm' else '确认退订' }}</button></form>{% endif %}</section>{% endif %}
+  <div class="status {{ 'warning' if stale else '' }}"><span class="dot"></span><span>{% if stale %}数据更新暂有延迟，历史记录仍可查看{% else %}监测运行中 · 每分钟检查一次{% endif %}{% if checked %}<br>本站最近成功检查：{{ beijing(checked) }}{% endif %}{% if updated %}<br>数据源标记更新时间：{{ beijing(updated) }}（由 LimitReset 提供，与本站检查时间不同）{% endif %}</span></div>
+  <div class="grid">
+    <section class="card"><h2>订阅邮件提醒</h2><p>只发送你选择的公告类型。</p>
+      <form action="{{ url_for('register') }}" method="post">
+        <input type="hidden" name="csrf" value="{{ session.csrf }}">
+        <label for="email">收件邮箱</label><input id="email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="you@example.com" required>
+        <div class="trap" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+        <fieldset><legend>我想收到</legend>{% for key,label in kinds.items() %}<label class="check"><input type="checkbox" name="kinds" value="{{ key }}" checked>{{ label }}</label>{% endfor %}</fieldset>
+        <button type="submit">发送验证邮件</button>
+        <p class="small">邮箱验证后生效。不会补发历史记录，也不会因预测概率变化而反复发信。</p>
+      </form>
+      <p class="small">邮箱仅用于发送验证和提醒，保存在本站服务器，不提交给数据源。每封邮件都包含退订入口；修改类型可先退订再重新选择。</p>
+    </section>
+    <section class="card"><h2>最近的公开记录</h2><p class="small">北京时间 · 按公告发布时间排列</p>
+      {% for event in events %}<article class="event"><div class="event-head"><span class="pill {{ event.kind }}">{{ kinds[event.kind] }}</span><time>{{ beijing(event.announced) }}</time></div>
+        <p>{{ '待执行预告，不代表已经完成。' if event.kind == 'upcoming' else '第三方收录记录，请核对原帖适用条件。' }}</p><a href="{{ event.source }}" target="_blank" rel="noopener noreferrer">查看原始公告 ↗</a></article>{% else %}<p>正在获取公告，请稍后刷新。</p>{% endfor %}
+    </section>
+  </div>
+  <footer>数据来源：<a href="https://limitreset.net/api-docs" target="_blank" rel="noopener noreferrer">LimitReset API</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>，本站按类别整理展示。<br>这是独立提醒服务，与 OpenAI 无关联。公开记录不能确认个人账户额度；实际额度请以你的账户用量页面为准。预告不保证精确重置时间。</footer>
+</main></body></html>

@@ -1,0 +1,31 @@
+[Unit]
+Description=Potatoma Site Analytics Admin
+After=network.target
+
+[Service]
+User=myl
+Group=myl
+WorkingDirectory=/home/myl/my_website
+EnvironmentFile=/home/myl/my_website/site_admin/.env
+ExecStart=/home/myl/my_website/site_admin/venv/bin/gunicorn -w 1 -b 127.0.0.1:5011 "site_admin.app:create_app()" --timeout 45
+Restart=always
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+PrivateDevices=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictNamespaces=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+[Install]
+WantedBy=multi-user.target

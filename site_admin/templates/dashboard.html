@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>站点数据分析</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+  </head>
+  <body
+    class="dashboard-body"
+    data-summary-url="{{ url_for('api_summary') }}"
+    data-trend-url="{{ url_for('api_trend') }}"
+    data-rankings-url="{{ url_for('api_rankings') }}"
+    data-events-url="{{ url_for('api_events') }}"
+    data-export-url="{{ url_for('export_csv') }}"
+    data-login-url="{{ url_for('login') }}"
+  >
+    <header class="dashboard-header">
+      <div>
+        <p class="eyebrow">管理员面板</p>
+        <h1>站点访问记录</h1>
+      </div>
+      <div class="header-actions">
+        <a class="button-link" href="{{ url_for('budget_page') }}">DeepSeek 额度与记录</a>
+        <a id="export-link" class="button-link button-link--primary" href="{{ url_for('export_csv') }}">导出 CSV</a>
+        <form id="logout-form" method="post" action="{{ url_for('logout') }}">
+          <button class="secondary-button" type="submit">退出登录</button>
+        </form>
+      </div>
+    </header>
+
+    <main class="dashboard-shell">
+      <section class="panel filter-panel" aria-labelledby="filters-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">查询范围</p>
+            <h2 id="filters-heading">筛选条件</h2>
+          </div>
+          <button id="reset-filters" class="text-button" type="button">重置</button>
+        </div>
+        <form id="filter-form" class="filter-grid">
+          <div class="field">
+            <label for="days">时间范围</label>
+            <select id="days" name="days">
+              <option value="1">今天</option>
+              <option value="7">最近 7 天</option>
+              <option value="30" selected>最近 30 天</option>
+              <option value="90">最近 90 天</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ip">IP 地址</label>
+            <input id="ip" name="ip" type="text" autocomplete="off" placeholder="输入 IP 地址筛选">
+          </div>
+          <div class="field">
+            <label for="path">页面路径</label>
+            <input id="path" name="path" type="text" autocomplete="off" placeholder="/jm/view/123">
+          </div>
+          <div class="field">
+            <label for="event">事件</label>
+            <select id="event" name="event">
+              <option value="">全部事件</option>
+              <option value="$pageview">页面访问</option>
+              <option value="primary_click">主要操作</option>
+              <option value="language_changed">语言切换</option>
+              <option value="theme_changed">主题切换</option>
+              <option value="comic_viewer_entered">进入漫画查看器</option>
+              <option value="comic_opened">打开漫画</option>
+              <option value="training_started">开始训练</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="comic-id">漫画 ID</label>
+            <input id="comic-id" name="comic_id" type="text" inputmode="numeric" pattern="[0-9]{1,16}" maxlength="16" autocomplete="off" placeholder="123">
+          </div>
+          <button class="apply-button" type="submit">应用筛选</button>
+        </form>
+      </section>
+
+      <section class="status-row" aria-live="polite" aria-atomic="true">
+        <p id="dashboard-status">正在加载数据…</p>
+        <p class="updated-copy">最后更新：<time id="last-updated">从未更新</time></p>
+        <span id="stale-indicator" class="stale-indicator" hidden>数据可能已过期</span>
+        <button id="retry-button" class="retry-button" type="button" hidden>重试</button>
+      </section>
+
+      <section class="kpi-grid" aria-label="关键指标">
+        <article class="kpi-card" data-kpi="pageviews"><p>页面访问</p><strong>—</strong></article>
+        <article class="kpi-card" data-kpi="unique_visitors"><p>独立访客</p><strong>—</strong></article>
+        <article class="kpi-card" data-kpi="unique_ips"><p>独立 IP</p><strong>—</strong></article>
+        <article class="kpi-card" data-kpi="primary_clicks"><p>主要操作</p><strong>—</strong></article>
+        <article class="kpi-card" data-kpi="comic_entries"><p>进入漫画查看器</p><strong>—</strong></article>
+        <article class="kpi-card" data-kpi="unique_comic_ids"><p>独立漫画 ID</p><strong>—</strong></article>
+      </section>
+
+      <section class="panel chart-panel" aria-labelledby="trend-heading">
+        <div class="section-heading">
+          <div><p class="eyebrow">每日统计</p><h2 id="trend-heading">页面访问趋势</h2></div>
+        </div>
+        <div class="chart-scroller">
+          <svg id="trend-chart" class="trend-chart" viewBox="0 0 900 260" role="img" aria-labelledby="trend-heading trend-description">
+            <desc id="trend-description">当前筛选条件下每天的页面访问量。</desc>
+          </svg>
+        </div>
+      </section>
+
+      <section class="rankings-grid" aria-label="排行">
+        <article class="panel ranking-panel" data-ranking-kind="page"><h2>热门页面</h2><ol></ol></article>
+        <article class="panel ranking-panel" data-ranking-kind="referrer"><h2>来源页面</h2><ol></ol></article>
+        <article class="panel ranking-panel" data-ranking-kind="country"><h2>访问位置</h2><ol></ol></article>
+        <article class="panel ranking-panel" data-ranking-kind="device"><h2>设备</h2><ol></ol></article>
+        <article class="panel ranking-panel" data-ranking-kind="operation"><h2>主要操作</h2><ol></ol></article>
+        <article class="panel ranking-panel" data-ranking-kind="comic"><h2>漫画 ID</h2><ol></ol></article>
+      </section>
+
+      <section class="panel details-panel" aria-labelledby="events-heading">
+        <div class="section-heading">
+          <div><p class="eyebrow">详细记录</p><h2 id="events-heading">操作事件</h2></div>
+          <div class="pagination-controls">
+            <button id="previous-page" class="secondary-button compact-button" type="button" disabled>上一页</button>
+            <span id="page-number">第 1 页</span>
+            <button id="next-page" class="secondary-button compact-button" type="button" disabled>下一页</button>
+          </div>
+        </div>
+        <div class="table-scroller">
+          <table>
+            <thead>
+              <tr><th>时间</th><th>IP</th><th>事件</th><th>路径</th><th>来源</th><th>设备</th><th>漫画 ID</th></tr>
+            </thead>
+            <tbody id="event-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='admin.js') }}" defer></script>
+  </body>
+</html>

@@ -40,6 +40,7 @@ import uuid
 from werkzeug.utils import secure_filename
 import zipfile
 import hmac
+import hashlib
 
 try:
     import jmcomic  # type: ignore
@@ -70,6 +71,7 @@ gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 #             1. 应用初始化与核心配置
 # ===================================================
 app = Flask(__name__)
+
 
 # ★★★ 支持反向代理环境，修复 url_for 生成的路径 ★★★
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
@@ -927,62 +929,17 @@ def rename_and_set_perms(dir_list, album_id):
                 print(f"警告：为 {final_path} 自动设置权限失败: {perm_error}")
 
 def _perform_download(album_id):
-    before_dirs = set(os.listdir(DOWNLOAD_DIR))
+    """旧后台队列使用网页/QQ 共用的完整漫画缓存。"""
     try:
-        if jmcomic is None:
-            return False, "服务器缺少 jmcomic 依赖，无法执行下载"
-        if not is_io_throttled.locked():
-            return False, "服务器I/O负载过高，任务已暂停"
-
-        option = jmcomic.JmOption.default()
-        option.download.ignore_photo_error = True
-        option.dir_rule.base_dir = DOWNLOAD_DIR
-        option.download.threading.photo = current_download_threads
-        
-        if getattr(option.client.postman.meta_data, 'headers', None) is None:
-            option.client.postman.meta_data.headers = {}
-        option.client.postman.meta_data.headers['Cookie'] = MY_COOKIE_STRING
-        
-        option.client.postman.meta_data.timeout = 30
-        option.client.retry_times = 2
-        
-        print(f"ID {album_id}: 已使用正确的属性方式配置JmOption。")
-
-        client = option.new_jm_client()
-        album_for_check = client.get_album_detail(album_id)
-        if album_for_check is None: return False, f"无法获取ID {album_id} 的详情"
-        if len(album_for_check) > 10: return False, f"章节数({len(album_for_check)}) > 10，为防服务器卡死已中止"
-        
-        option.download_album(album_id)
-        time.sleep(1)
-
-        after_dirs = set(os.listdir(DOWNLOAD_DIR))
-        newly_created_dirs_this_run = after_dirs - before_dirs
-        target_dir_prefix = f"{album_id}_"
-
-        if newly_created_dirs_this_run:
-            rename_and_set_perms(newly_created_dirs_this_run, album_id)
-            return True, "首次下载成功"
-            
-        matched_dirs = [d for d in after_dirs if d.startswith(target_dir_prefix) or d == str(album_id)]
-        if matched_dirs:
-            rename_and_set_perms(matched_dirs, album_id)
-            return True, "增量下载/缓存命中成功"
-
-        raise Exception("下载过程未创建任何新文件夹，也未在磁盘上找到匹配的文件夹")
-
-    except Exception as e:
-        print(f"下载ID {album_id} 过程中发生严重错误，将执行精确清理...")
-        import traceback
-        traceback.print_exc()
-        final_dirs = set(os.listdir(DOWNLOAD_DIR))
-        dirs_to_cleanup = final_dirs - before_dirs
-        if dirs_to_cleanup:
-            print(f"检测到需要清理的垃圾文件夹: {list(dirs_to_cleanup)}")
-            for d in dirs_to_cleanup:
-                try: shutil.rmtree(os.path.join(DOWNLOAD_DIR, d))
-                except OSError as cleanup_error: print(f"清理文件夹 {d} 时出错: {cleanup_error}")
-        return False, f"下载失败: {e}"
+        from pathlib import Path
+        module_root = Path(__file__).resolve().parents[2] / "qq_bot"
+        if str(module_root) not in sys.path:
+            sys.path.insert(0, str(module_root))
+        from archives import build_archive
+        build_archive(str(album_id), Path(DOWNLOAD_DIR) / ".archives")
+        return True, "共享漫画缓存已就绪"
+    except Exception as exc:
+        return False, f"下载失败: {exc}"
 
 def download_worker():
     print("后台下载工作线程已启动 (使用Redis, 永不死模式)...")
@@ -1160,6 +1117,42 @@ def login():
             return render_template('login.html')
             
     return render_template('login.html')
+
+
+@app.post('/login/quick')
+def quick_login():
+    """Create or restore a low-friction, non-privileged visitor account.
+
+    The source address is HMACed with a server-only salt.  The raw address is
+    deliberately neither stored in the user database nor exposed in HTML.
+    """
+    if current_user.is_authenticated:
+        return redirect(url_for('index_page'))
+
+    source_ip = request.remote_addr or 'unknown'
+    secret = os.getenv('IP_QUICK_LOGIN_SALT', app.config['SECRET_KEY'])
+    identity = hmac.new(secret.encode('utf-8'), source_ip.encode('utf-8'), hashlib.sha256).hexdigest()[:16]
+    username = f'访客_{identity[:10]}'
+    email = f'ip-{identity}@quick-login.local'
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        user = User(username=username, email=email)
+        user.set_password(secrets.token_urlsafe(32))
+        db.session.add(user)
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            # The deterministic email is the identity; retry safely if a
+            # concurrent quick-login request created it first.
+            user = User.query.filter_by(email=email).first()
+            if not user:
+                flash('快速登录暂时不可用，请稍后重试。', 'error')
+                return redirect(url_for('login'))
+    login_user(user)
+    session['quick_login'] = True
+    flash(f'已作为 {user.username} 快速登录。', 'success')
+    return redirect(url_for('index_page'))
 
 # ★★★ 3. 新增：管理员专用登录路由 (逻辑来自你旧的 /login) ★★★
 @app.route('/admin/login', methods=['GET', 'POST'])

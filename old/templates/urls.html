@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <script>window.SCRIPT_ROOT = "{{ request.script_root }}";</script>
 </head>
 <body>
     <header class="navbar">
@@ -71,7 +72,7 @@
     // 1. 检查管理员状态
     async function checkAdminStatus() {
         try {
-            const response = await fetch('/api/check_admin');
+            const response = await fetch(SCRIPT_ROOT + '/api/check_admin');
             const data = await response.json();
             if (response.ok && data.isAdmin) {
                 isAdmin = true;
@@ -86,7 +87,7 @@
     async function fetchUrls() {
         urlList.innerHTML = '<li class="status">正在加载...</li>';
         try {
-            const response = await fetch('/api/urls');
+            const response = await fetch(SCRIPT_ROOT + '/api/urls');
             const urls = await response.json();
             urlList.innerHTML = ''; // 清空加载提示
             if (urls.length === 0) {
@@ -125,7 +126,7 @@
         if (!title || !url) return;
 
         try {
-            const response = await fetch('/api/urls', {
+            const response = await fetch(SCRIPT_ROOT + '/api/urls', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ title, url })
@@ -149,7 +150,7 @@
         if (!confirm('确定要删除这个网址吗？')) return;
 
         try {
-            const response = await fetch(`/api/urls/${urlId}`, { method: 'DELETE' });
+            const response = await fetch(`${SCRIPT_ROOT}/api/urls/${urlId}`, { method: 'DELETE' });
             if (response.ok) {
                 fetchUrls(); // 刷新列表
             } else {

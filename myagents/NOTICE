@@ -1,0 +1,117 @@
+myagents —— 多智能体群聊协作平台
+===========================================
+
+本产品包含以下开源项目的代码，在此表示感谢。
+
+===============================================================================
+cool-admin-vue / cool-admin-java
+-------------------------------------------------------------------------------
+Copyright (c) cool-team
+Licensed under the MIT License.
+
+https://github.com/cool-team-official/cool-admin-vue
+https://github.com/cool-team-official/cool-admin-java
+
+MIT License: https://opensource.org/licenses/MIT
+
+===============================================================================
+Spring Boot
+-------------------------------------------------------------------------------
+Copyright (c) VMware, Inc.
+Licensed under the Apache License, Version 2.0.
+
+https://github.com/spring-projects/spring-boot
+
+Apache License, Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
+
+===============================================================================
+Spring AI Alibaba
+-------------------------------------------------------------------------------
+Copyright (c) Alibaba Group
+Licensed under the Apache License, Version 2.0.
+
+https://github.com/alibaba/spring-ai-alibaba
+
+Apache License, Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
+
+===============================================================================
+AgentScope
+-------------------------------------------------------------------------------
+Copyright (c) ModelScope
+Licensed under the Apache License, Version 2.0.
+
+https://github.com/modelscope/agentscope
+
+Apache License, Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
+
+===============================================================================
+Mem0
+-------------------------------------------------------------------------------
+Copyright (c) Mem0 AI
+Licensed under the Apache License, Version 2.0.
+
+https://github.com/mem0ai/mem0
+
+Apache License, Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
+
+===============================================================================
+Milvus
+-------------------------------------------------------------------------------
+Copyright (c) Zilliz
+Licensed under the Apache License, Version 2.0.
+
+https://github.com/milvus-io/milvus
+
+Apache License, Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
+
+===============================================================================
+AG-UI Protocol
+-------------------------------------------------------------------------------
+Copyright (c) AG-UI Contributors
+Licensed under the MIT License.
+
+https://github.com/ag-ui-protocol/ag-ui
+
+MIT License: https://opensource.org/licenses/MIT
+
+===============================================================================
+Ollama
+-------------------------------------------------------------------------------
+Copyright (c) Ollama
+Licensed under the MIT License.
+
+https://github.com/ollama/ollama
+
+MIT License: https://opensource.org/licenses/MIT
+
+===============================================================================
+MyBatis-Flex
+-------------------------------------------------------------------------------
+Copyright (c) MyBatis-Flex Contributors
+Licensed under the Apache License, Version 2.0.
+
+https://github.com/mybatis-flex/mybatis-flex
+
+Apache License, Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
+
+===============================================================================
+Vue.js 3
+-------------------------------------------------------------------------------
+Copyright (c) Evan You
+Licensed under the MIT License.
+
+https://github.com/vuejs/core
+
+MIT License: https://opensource.org/licenses/MIT
+
+===============================================================================
+Element Plus
+-------------------------------------------------------------------------------
+Copyright (c) Element Plus Contributors
+Licensed under the MIT License.
+
+https://github.com/element-plus/element-plus
+
+MIT License: https://opensource.org/licenses/MIT
+
+===============================================================================

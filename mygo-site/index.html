@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="MyGO!!!!! 中文粉丝介绍页，收录乐队、动画、五位成员与声优资料。"
+    />
+    <title>It's MyGO!!!!! | 乐队与动画介绍</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳至正文</a>
+
+    <header class="site-header" id="top">
+      <a class="brand" href="#top" aria-label="返回页面顶部">
+        <img src="assets/official/mygo-logo.webp" alt="MyGO!!!!!" />
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        菜单
+      </button>
+      <nav class="site-nav" id="site-nav" aria-label="主导航">
+        <a href="#band">乐队</a>
+        <a href="#music">音乐</a>
+        <a href="#video">视频</a>
+        <a href="#members">成员</a>
+        <a href="#anime">动画</a>
+        <a href="#cast">声优</a>
+        <a href="#sources">来源</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <img
+          class="hero-image"
+          src="assets/official/anime-kv.jpg"
+          alt="身穿蓝白乐队服装并手持乐器的 MyGO!!!!! 五位成员"
+        />
+        <div class="hero-shade" aria-hidden="true"></div>
+        <div class="hero-copy">
+          <img class="hero-logo" src="assets/official/mygo-logo.webp" alt="MyGO!!!!!" />
+          <p class="hero-kicker">迷子でもいい、前へ進め。</p>
+          <h1 id="hero-title">即使迷失，<br />也要继续前进。</h1>
+          <p class="hero-intro">
+            五个人，五种无法轻易说出口的心情。她们不是先成为朋友才组建乐队，而是在一次次碰撞里，试着让声音抵达彼此。
+          </p>
+          <div class="hero-actions">
+            <a class="primary-link" href="#music">播放她们的音乐</a>
+            <a class="secondary-link" href="#members">认识五位成员</a>
+          </div>
+        </div>
+        <p class="hero-note">非官方粉丝介绍页</p>
+      </section>
+
+      <section class="band section-shell" id="band" aria-labelledby="band-title">
+        <div class="band-art reveal">
+          <img
+            src="assets/official/anime-kv-alt.jpg"
+            alt="MyGO!!!!! 五位成员在城市夜色中的动画官方主视觉"
+          />
+          <p>动画官方站高清主视觉。</p>
+        </div>
+        <div class="band-copy reveal">
+          <p class="section-mark">MyGO!!!!!</p>
+          <h2 id="band-title">名字里有五个感叹号，也有五个仍在寻找归处的人。</h2>
+          <p class="lead">
+            MyGO!!!!! 是 BanG Dream! 企划中的五人乐队。名称让人联想到日语“迷子”，五个感叹号对应五位成员。她们把难以整理的人际关系、羞耻、执念与渴望，写进直接而有力度的乐曲中。
+          </p>
+          <dl class="band-facts">
+            <div>
+              <dt>组成</dt>
+              <dd>主唱、双吉他、贝斯、鼓</dd>
+            </div>
+            <div>
+              <dt>现实演出</dt>
+              <dd>角色声优同时组成现实乐队进行演奏</dd>
+            </div>
+            <div>
+              <dt>核心表达</dt>
+              <dd>迷茫、错位、坦白，以及仍然想要连接彼此</dd>
+            </div>
+          </dl>
+          <div class="inline-links">
+            <a href="https://bang-dream.com/artist/mygo" target="_blank" rel="noreferrer">乐队官方主页</a>
+            <a href="https://search.bilibili.com/all?keyword=MyGO%21%21%21%21%21" target="_blank" rel="noreferrer">MyGO!!!!! 哔哩哔哩视频</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="music" id="music" aria-labelledby="music-title">
+        <div class="music-inner section-shell">
+          <div class="music-copy reveal">
+            <p class="section-mark">Listen to MyGO!!!!!</p>
+            <h2 id="music-title">不是为了唱得漂亮，而是为了让声音抵达。</h2>
+            <p class="lead">
+              从《迷星叫》的漂泊感，到《詩超絆》近乎撕裂的告白，MyGO!!!!! 的歌曲总在寻找一种能够与别人继续走下去的语言。
+            </p>
+            <div class="music-links">
+              <a href="#offline-player">本地离线播放</a>
+              <a href="https://search.bilibili.com/all?keyword=MyGO%21%21%21%21%21" target="_blank" rel="noreferrer">在哔哩哔哩继续探索</a>
+            </div>
+          </div>
+          <div class="offline-player reveal" id="offline-player">
+            <div class="player-topline">
+              <span>Local audio · 无需网络</span>
+              <strong id="track-title">迷星叫</strong>
+            </div>
+            <div class="now-playing">
+              <img id="track-cover" src="assets/albums/meisekihai.jpg" alt="当前播放歌曲的专辑封面" />
+              <div class="now-playing-copy">
+                <small id="track-index">01 / 11</small>
+                <p id="track-note">迷路并不等于停止前进。</p>
+                <strong>MyGO!!!!!</strong>
+              </div>
+            </div>
+            <audio id="audio-player" src="assets/audio/01-mayoiuta.mp3" preload="metadata"></audio>
+            <div class="player-progress">
+              <span id="current-time">0:00</span>
+              <input id="audio-progress" type="range" min="0" max="100" value="0" aria-label="歌曲播放进度" />
+              <span id="duration">--:--</span>
+            </div>
+            <div class="player-controls">
+              <button id="previous-track" type="button">上一首</button>
+              <button class="play-toggle" id="play-toggle" type="button" aria-label="播放当前歌曲">播放</button>
+              <button id="next-track" type="button">下一首</button>
+              <label>
+                音量
+                <input id="audio-volume" type="range" min="0" max="1" step="0.05" value="0.8" />
+              </label>
+            </div>
+            <ol class="local-playlist" aria-label="本地歌曲列表">
+              <li><button class="local-track is-active" type="button" data-src="assets/audio/01-mayoiuta.mp3" data-title="迷星叫" data-note="迷路并不等于停止前进。"><span>01</span><strong>迷星叫</strong></button></li>
+              <li><button class="local-track" type="button" data-src="assets/audio/02-hitoshizuku.mp3" data-title="壱雫空" data-note="在雨停之前，也可以继续走。"><span>02</span><strong>壱雫空</strong></button></li>
+              <li><button class="local-track" type="button" data-src="assets/audio/03-hekitennbansou.mp3" data-title="碧天伴走" data-note="并肩前进，也是一种回答。"><span>03</span><strong>碧天伴走</strong></button></li>
+              <li><button class="local-track" type="button" data-src="assets/audio/04-utakotoba.mp3" data-title="詩超絆" data-note="无法说出口的心意，被唱成了一生。"><span>04</span><strong>詩超絆</strong></button></li>
+              <li><button class="local-track" type="button" data-src="assets/audio/05-harukage.mp3" data-title="春日影" data-note="温柔的回忆，也可能刺痛仍在原地的人。"><span>05</span><strong>春日影</strong></button></li>
+              <li><button class="local-track" type="button" data-src="assets/audio/06-otoichie.mp3" data-title="音一会" data-note="一次相遇，也能让声音留下方向。"><span>06</span><strong>音一会</strong></button></li>
+              <li><button class="local-track" type="button" data-src="assets/audio/07-namonaki.mp3" data-title="名無声" data-note="即使没有名字，声音仍然真实存在。"><span>07</span><strong>名無声</strong></button></li>
+              <li><button class="local-track" type="button" data-src="assets/audio/08-kageiromai.mp3" data-title="影色舞" data-note="与自己的影子共舞，直到看见光。"><span>08</span><strong>影色舞</strong></button></li>
+              <li><button class="local-track" type="button" data-src="assets/audio/09-tanebi.mp3" data-title="焚音打" data-note="把尚未熄灭的情绪敲成节拍。"><span>09</span><strong>焚音打</strong></button></li>
+              <li><button class="local-track" type="button" data-src="assets/audio/10-sasunsou.mp3" data-title="砂寸奏" data-note="细小的瞬间，也值得认真演奏。"><span>10</span><strong>砂寸奏</strong></button></li>
+              <li><button class="local-track" type="button" data-src="assets/audio/11-shiori.mp3" data-title="栞" data-note="给走过的路夹上一枚书签。"><span>11</span><strong>栞</strong></button></li>
+            </ol>
+            <p class="player-local-note">音频保存在本项目内，打开网页后无需连接境外音乐服务。</p>
+          </div>
+        </div>
+        <div class="track-strip" aria-label="推荐曲目">
+          <span>迷星叫</span>
+          <span>壱雫空</span>
+          <span>碧天伴走</span>
+          <span>詩超絆</span>
+          <span>春日影</span>
+          <span>音一会</span>
+        </div>
+      </section>
+
+      <section class="video section-shell" id="video" aria-labelledby="video-title">
+        <div class="section-heading reveal">
+          <p class="section-mark">Bilibili video</p>
+          <h2 id="video-title">从动画中的一首歌，到现实舞台上的五个人。</h2>
+        </div>
+        <div class="video-layout reveal">
+          <div class="video-screen">
+            <iframe
+              id="video-player"
+              src="https://player.bilibili.com/player.html?bvid=BV1kj411i7ZY&page=1&high_quality=1&danmaku=0"
+              title="MyGO!!!!! 哔哩哔哩视频播放器"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowfullscreen
+            ></iframe>
+            <p class="video-fallback">
+              播放器无法加载时，可
+              <a id="video-external" href="https://www.bilibili.com/video/BV1kj411i7ZY/" target="_blank" rel="noreferrer">直接前往哔哩哔哩观看</a>
+            </p>
+          </div>
+          <div class="video-playlist" role="list" aria-label="选择哔哩哔哩视频">
+            <button class="video-item is-active" type="button" data-bvid="BV1kj411i7ZY" aria-pressed="true">
+              <img src="assets/media/utakotoba.jpg" alt="" />
+              <span><small>哔哩哔哩 · Official MV</small><strong>詩超絆</strong></span>
+            </button>
+            <button class="video-item" type="button" data-bvid="BV1J44y1c7PQ" aria-pressed="false">
+              <img src="assets/media/tanebi.jpg" alt="" />
+              <span><small>哔哩哔哩 · Official MV</small><strong>焚音打</strong></span>
+            </button>
+            <button class="video-item" type="button" data-bvid="BV1iKHkexENb" aria-pressed="false">
+              <img src="assets/media/hitoshizuku-op.jpg" alt="" />
+              <span><small>哔哩哔哩 · 4K Live</small><strong>詩超絆 · 12th LIVE</strong></span>
+            </button>
+            <button class="video-item" type="button" data-bvid="BV1qV4y1v7R8" aria-pressed="false">
+              <img src="assets/media/anime-trailer.jpg" alt="" />
+              <span><small>哔哩哔哩 · 动画预告</small><strong>第十话 · 一直迷失着</strong></span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="discography section-shell" aria-labelledby="discography-title">
+        <div class="discography-heading reveal">
+          <p class="section-mark">Discography</p>
+          <h2 id="discography-title">每一张唱片，都记录了她们迷路的不同方式。</h2>
+          <p>封面与发行信息来自 BanG Dream! 官方唱片页面。点击封面可以查看官方收录曲目与版本信息。</p>
+        </div>
+        <div class="album-grid">
+          <a class="album album-main reveal" href="https://bang-dream.com/discographies/3457/" target="_blank" rel="noreferrer">
+            <img src="assets/albums/meisekihai.jpg" alt="MyGO!!!!! 第一张专辑《迷跡波》官方封面" />
+            <span><small>1st Album · 2023</small><strong>迷跡波</strong><em>从《迷星叫》到《詩超絆》，动画中的伤痕被完整收进一张唱片。</em></span>
+          </a>
+          <a class="album reveal" href="https://bang-dream.com/discographies/3846/" target="_blank" rel="noreferrer">
+            <img src="assets/albums/atonozora.jpg" alt="MyGO!!!!! 第二张专辑《跡暖空》官方封面" />
+            <span><small>2nd Album · 2024</small><strong>跡暖空</strong><em>不再只追问过去，也开始确认并肩前进留下的温度。</em></span>
+          </a>
+          <a class="album reveal" href="https://bang-dream.com/discographies/3368/" target="_blank" rel="noreferrer">
+            <img src="assets/albums/hitoshizuku.jpg" alt="MyGO!!!!! 第三张单曲《壱雫空》官方封面" />
+            <span><small>3rd Single · 2023</small><strong>壱雫空</strong><em>雨不会立刻停，但天空已经开始映出五个人的轮廓。</em></span>
+          </a>
+          <a class="album reveal" href="https://bang-dream.com/discographies/3908/" target="_blank" rel="noreferrer">
+            <img src="assets/albums/hitsujitsusen.jpg" alt="MyGO!!!!! 第六张单曲《聿日箋秋》官方封面" />
+            <span><small>6th Single · 2024</small><strong>聿日箋秋</strong><em>秋日的光线很长，五个人的距离也终于不再彼此遮蔽。</em></span>
+          </a>
+        </div>
+      </section>
+
+      <section class="words" aria-labelledby="words-title">
+        <div class="words-heading section-shell reveal">
+          <p class="section-mark">Words that remain</p>
+          <h2 id="words-title">歌曲结束以后，仍然留在心里的句子。</h2>
+          <p>这里不是完整歌词转载，而是短句与听后意译。它们谈论的并不只有乐队，也是在关系里迷路过的每一个人。</p>
+        </div>
+        <div class="word-stories section-shell">
+          <article class="word-story word-story-wide reveal">
+            <img src="assets/moments/stage-live.jpg" alt="MyGO!!!!! 五人在舞台上演奏的动画剧照" />
+            <div>
+              <p>《詩超絆》</p>
+              <blockquote>“一生だよ。”</blockquote>
+              <span>真正沉重的承诺，不是保证永远不会分开，而是在已经伤害彼此以后，仍然愿意认真地说：这段关系对我不是暂时的。</span>
+            </div>
+          </article>
+          <article class="word-story reveal">
+            <img src="assets/moments/soyo-tears.jpg" alt="长崎爽世流泪的动画剧照" />
+            <div>
+              <p>《春日影》之后</p>
+              <blockquote>失去的关系不会恢复原状。</blockquote>
+              <span>但承认自己还在痛，并不是软弱。那是终于停止假装，也可能是重新看见对方的开始。</span>
+            </div>
+          </article>
+          <article class="word-story reveal">
+            <img src="assets/moments/group-night.jpg" alt="MyGO!!!!! 五位成员夜晚合影的动画剧照" />
+            <div>
+              <p>《迷星叫》听后意译</p>
+              <blockquote>迷路的人，并不是没有方向。</blockquote>
+              <span>也许只是还没有找到一个愿意放慢脚步、承认自己同样迷茫，并和你一起走的人。</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="members" id="members" aria-labelledby="members-title">
+        <div class="section-heading section-shell reveal">
+          <p class="section-mark">五人的声音</p>
+          <h2 id="members-title">选择一位成员，听见她在乐队里的位置。</h2>
+        </div>
+
+        <div class="member-stage section-shell reveal">
+          <div class="member-portrait-wrap">
+            <div class="member-index" aria-hidden="true">01</div>
+            <img
+              class="member-portrait"
+              id="member-portrait"
+              src="assets/user/tomori.jpg"
+              alt="高松燈角色图"
+            />
+            <p class="member-image-caption">角色图片由用户提供</p>
+          </div>
+
+          <article class="member-detail" aria-live="polite">
+            <div class="member-title-line">
+              <p class="member-role" id="member-role">Vo.</p>
+              <p class="member-jp" id="member-jp">高松 燈</p>
+            </div>
+            <h3 id="member-name">高松燈</h3>
+            <p class="member-roman" id="member-roman">Tomori Takamatsu</p>
+            <p class="member-summary" id="member-summary">
+              羽丘女子学园高中一年级。感受事物的方式与周围人有些不同，不善于表达，却会用近乎呐喊的歌声把内心交出去。
+            </p>
+            <dl class="member-meta">
+              <div>
+                <dt>乐队位置</dt>
+                <dd id="member-position">主唱</dd>
+              </div>
+              <div>
+                <dt>声优</dt>
+                <dd id="member-cv">羊宫妃那</dd>
+              </div>
+              <div>
+                <dt>关键词</dt>
+                <dd id="member-keywords">收集、天文、直率的歌</dd>
+              </div>
+            </dl>
+            <a class="text-link" id="member-link" href="https://anime.bang-dream.com/mygo/character/tomori/" target="_blank" rel="noreferrer">
+              查看官方角色页
+            </a>
+          </article>
+        </div>
+
+        <div class="member-tabs section-shell" role="tablist" aria-label="选择 MyGO!!!!! 成员">
+          <button class="member-tab is-active" type="button" role="tab" aria-selected="true" data-member="tomori">
+            <span>Vo.</span> 高松燈
+          </button>
+          <button class="member-tab" type="button" role="tab" aria-selected="false" data-member="anon">
+            <span>Gt.</span> 千早爱音
+          </button>
+          <button class="member-tab" type="button" role="tab" aria-selected="false" data-member="rana">
+            <span>Gt.</span> 要乐奈
+          </button>
+          <button class="member-tab" type="button" role="tab" aria-selected="false" data-member="soyo">
+            <span>Ba.</span> 长崎爽世
+          </button>
+          <button class="member-tab" type="button" role="tab" aria-selected="false" data-member="taki">
+            <span>Dr.</span> 椎名立希
+          </button>
+        </div>
+      </section>
+
+      <section class="anime section-shell" id="anime" aria-labelledby="anime-title">
+        <div class="anime-copy reveal">
+          <p class="section-mark">2023 TV 动画 · 全 13 话</p>
+          <h2 id="anime-title">伤痕并不会因为组成乐队就消失。</h2>
+          <p class="lead">
+            转学生千早爱音为了融入班级而寻找乐队成员，并向“羽丘的怪女孩”高松燈发出邀请。她很快发现，燈、爽世与立希曾经的乐队 CRYCHIC 留下了无法绕开的裂痕。
+          </p>
+          <p>
+            《BanG Dream! It's MyGO!!!!!》把组乐队拍成一段充满误解、沉默与失控的青春关系剧。音乐不是终点，而是她们终于愿意继续说下去的方法。
+          </p>
+          <a class="text-link" href="https://anime.bang-dream.com/mygo/" target="_blank" rel="noreferrer">访问动画官方主页</a>
+        </div>
+
+        <div class="still-grid reveal" aria-label="动画官方剧照">
+          <button class="still still-wide" type="button" data-full="assets/stills/ep07-live.png">
+            <img src="assets/stills/ep07-live.png" alt="第七话官方剧照，舞台演出场景" />
+            <span>舞台上的第一次正面碰撞</span>
+          </button>
+          <button class="still" type="button" data-full="assets/stills/ep03.png">
+            <img src="assets/stills/ep03.png" alt="第三话官方剧照" />
+            <span>无法轻易说出口的过去</span>
+          </button>
+          <button class="still" type="button" data-full="assets/stills/ep10.png">
+            <img src="assets/stills/ep10.png" alt="第十话官方剧照" />
+            <span>关系走向失控之后</span>
+          </button>
+          <button class="still still-wide" type="button" data-full="assets/stills/ep12.png">
+            <img src="assets/stills/ep12.png" alt="第十二话官方剧照" />
+            <span>五个人终于拥有的名字</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="moments section-shell" aria-labelledby="moments-title">
+        <div class="moments-heading reveal">
+          <p class="section-mark">Unforgettable moments</p>
+          <h2 id="moments-title">有些合影看起来很普通，是因为你知道她们走了多远。</h2>
+          <p>争吵、沉默、疲惫和失控都没有消失。真正发生改变的是，她们开始允许彼此以不完美的样子留在身边。</p>
+        </div>
+        <div class="moment-grid reveal">
+          <button class="moment moment-large" type="button" data-full="assets/moments/room-together.jpg">
+            <img src="assets/moments/room-together.jpg" alt="五位成员疲惫地待在房间里的动画剧照" />
+            <span>不必时刻说话，也可以待在同一个房间。</span>
+          </button>
+          <button class="moment" type="button" data-full="assets/moments/group-night.jpg">
+            <img src="assets/moments/group-night.jpg" alt="五位成员在夜晚的合影" />
+            <span>第一次像一支真正的乐队。</span>
+          </button>
+          <button class="moment" type="button" data-full="assets/moments/spring-shadow-shout.jpg">
+            <img src="assets/moments/spring-shadow-shout.jpg" alt="角色激动喊出为什么要演奏春日影的动画剧照" />
+            <span>有些呐喊，是因为太害怕再次失去。</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="cast" id="cast" aria-labelledby="cast-title">
+        <div class="section-heading section-shell reveal">
+          <p class="section-mark">角色与演奏者</p>
+          <h2 id="cast-title">她们为角色配音，也把 MyGO!!!!! 带到现实舞台。</h2>
+        </div>
+
+        <div class="cast-list section-shell">
+          <article class="cast-row reveal">
+            <div class="cast-images">
+              <img src="assets/official/takamatsu-tomori.webp" alt="高松燈官方角色图" />
+              <img src="assets/official/yomiya-hina.webp" alt="羊宫妃那官方照片" />
+            </div>
+            <div class="cast-copy">
+              <p>高松燈 · Vo.</p>
+              <h3>羊宫妃那</h3>
+              <p>为高松燈配音，并在现实乐队中担任主唱。她让燈细小、迟疑的说话方式，与舞台上爆发性的歌声形成鲜明反差。</p>
+            </div>
+          </article>
+          <article class="cast-row reveal">
+            <div class="cast-images">
+              <img src="assets/official/chihaya-anon.webp" alt="千早爱音官方角色图" />
+              <img src="assets/official/tateishi-rin.webp" alt="立石凛官方照片" />
+            </div>
+            <div class="cast-copy">
+              <p>千早爱音 · Gt.</p>
+              <h3>立石凛</h3>
+              <p>为千早爱音配音，并在现实乐队中担任吉他手。她把爱音的行动力、要面子与不愿放弃都带进表演。</p>
+            </div>
+          </article>
+          <article class="cast-row reveal">
+            <div class="cast-images">
+              <img src="assets/official/kaname-rana.webp" alt="要乐奈官方角色图" />
+              <img src="assets/official/aoki-hina.webp" alt="青木阳菜官方照片" />
+            </div>
+            <div class="cast-copy">
+              <p>要乐奈 · Gt.</p>
+              <h3>青木阳菜</h3>
+              <p>为要乐奈配音，并在现实乐队中担任吉他手。乐奈自由又难以捉摸，吉他则是她最直接的语言。</p>
+            </div>
+          </article>
+          <article class="cast-row reveal">
+            <div class="cast-images">
+              <img src="assets/official/nagasaki-soyo.webp" alt="长崎爽世官方角色图" />
+              <img src="assets/official/kohinata-mika.webp" alt="小日向美香官方照片" />
+            </div>
+            <div class="cast-copy">
+              <p>长崎爽世 · Ba.</p>
+              <h3>小日向美香</h3>
+              <p>为长崎爽世配音，并在现实乐队中担任贝斯手。温柔、执着与失控之间的细微变化，是爽世最重要的表演层次。</p>
+            </div>
+          </article>
+          <article class="cast-row reveal">
+            <div class="cast-images">
+              <img src="assets/official/shiina-taki.webp" alt="椎名立希官方角色图" />
+              <img src="assets/official/hayashi-koko.webp" alt="林鼓子官方照片" />
+            </div>
+            <div class="cast-copy">
+              <p>椎名立希 · Dr.</p>
+              <h3>林鼓子</h3>
+              <p>为椎名立希配音，并在现实乐队中担任鼓手。立希的急躁与保护欲，在她紧绷而有推动力的演奏中得到延伸。</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="sources section-shell" id="sources" aria-labelledby="sources-title">
+        <div class="sources-copy reveal">
+          <p class="section-mark">继续探索</p>
+          <h2 id="sources-title">从官方内容出发，也尊重每一位创作者。</h2>
+          <p>
+            本页使用的新增角色图、声优照片与动画剧照来自 BanG Dream! 官方网站和动画官方站。用户提供的七张图片仅用于本地粉丝介绍页。Pixiv 同人作品没有被擅自转载或去除水印，下面提供标签入口，观看时请遵守画师的转载说明。
+          </p>
+        </div>
+        <div class="source-links reveal">
+          <a href="https://anime.bang-dream.com/mygo/" target="_blank" rel="noreferrer">
+            <strong>动画官方站</strong>
+            <span>剧情、角色、剧照与 Staff & Cast</span>
+          </a>
+          <a href="https://bang-dream.com/artist/mygo" target="_blank" rel="noreferrer">
+            <strong>MyGO!!!!! 乐队官方页</strong>
+            <span>成员、角色与现实演奏者资料</span>
+          </a>
+          <a href="https://www.pixiv.net/tags/MyGO!!!!!/artworks" target="_blank" rel="noreferrer">
+            <strong>Pixiv · MyGO!!!!! 标签</strong>
+            <span>前往原作页面欣赏同人作品</span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <img src="assets/official/mygo-logo.webp" alt="MyGO!!!!!" />
+      <p>本页为非官方粉丝制作。角色及作品版权归原权利方所有。</p>
+      <p>来源：窜子</p>
+      <a href="#top">返回顶部</a>
+    </footer>
+
+    <dialog class="lightbox" id="lightbox" aria-label="查看动画剧照">
+      <button class="lightbox-close" type="button">关闭</button>
+      <img alt="" />
+    </dialog>
+  </body>
+</html>

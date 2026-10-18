@@ -1,0 +1,21 @@
+[Unit]
+Description=Codex reset subscription website
+After=network.target
+
+[Service]
+User=codex-reset
+Group=codex-reset
+WorkingDirectory=/opt/codex-reset
+Environment=RESET_CONFIG=/etc/codex-reset/config.json
+ExecStart=/home/myl/my_website/venv/bin/gunicorn --workers 2 --bind 127.0.0.1:5021 --timeout 45 --no-control-socket app:create_app()
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/codex-reset
+PrivateTmp=true
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

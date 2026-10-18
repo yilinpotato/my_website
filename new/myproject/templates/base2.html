@@ -8,6 +8,7 @@
     <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    <script>window.SCRIPT_ROOT = "{{ request.script_root }}";</script>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -31,7 +32,6 @@
             </a>
             <nav>
                 <ul>
-
                 </ul>
             </nav>
             <div class="user-actions">

@@ -9,6 +9,7 @@
     <!-- 链接到更新后的 CSS 文件 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style_v2.css') }}"> 
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script>window.SCRIPT_ROOT = "{{ request.script_root }}";</script>
 </head>
 <body>
     <!-- (Header 和隐藏的 div 保持不变) -->
@@ -182,10 +183,10 @@
                         clickCount = 0;
                         if (isAdmin) {
                             if (confirm("您已是管理员。确定要注销管理员权限吗？(这不会注销您的普通用户登录)")) {
-                                window.location.href = '/admin/logout';
+                                window.location.href = SCRIPT_ROOT + '/admin/logout';
                             }
                         } else {
-                            window.location.href = '/admin/login';
+                            window.location.href = SCRIPT_ROOT + '/admin/login';
                         }
                         return;
                     }

@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sphericalHarmonicsDegree: 0,
       });
 
-      const splatPath = (ctx && typeof ctx.splatDemoPath === 'string' && ctx.splatDemoPath) ? ctx.splatDemoPath : '/static/models/example.splat';
+      const splatPath = (ctx && typeof ctx.splatDemoPath === 'string' && ctx.splatDemoPath) ? ctx.splatDemoPath : ((window.SCRIPT_ROOT || '') + '/static/models/example.splat');
 
       await viewer.addSplatScene(splatPath, {
         showLoadingUI: true,

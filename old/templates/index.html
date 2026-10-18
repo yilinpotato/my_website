@@ -8,6 +8,7 @@
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <script>window.SCRIPT_ROOT = "{{ request.script_root }}";</script>
 
 </head>
 <body>
@@ -24,8 +25,6 @@
             </a>
             <nav>
                 <ul>
-
-
                 </ul>
             </nav>
 
@@ -140,11 +139,11 @@
                     // 如果已是管理员，则提示注销管理员权限
                     if (isAdmin) {
                         if (confirm("您已是管理员。确定要注销管理员权限吗？(这不会注销您的普通用户登录)")) {
-                            window.location.href = '/admin/logout'; // 使用专门的管理员注销路由
+                            window.location.href = SCRIPT_ROOT + '/admin/logout'; // 使用专门的管理员注销路由
                         }
                     } else {
                         // 否则，跳转到管理员登录页面
-                        window.location.href = '/admin/login'; // 指向专门的管理员登录页
+                        window.location.href = SCRIPT_ROOT + '/admin/login'; // 指向专门的管理员登录页
                     }
                     return;
                 }

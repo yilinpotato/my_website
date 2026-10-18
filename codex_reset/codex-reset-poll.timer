@@ -1,0 +1,12 @@
+[Unit]
+Description=Check Codex reset announcements every minute
+
+[Timer]
+OnBootSec=30
+OnCalendar=*-*-* *:*:00
+RandomizedDelaySec=5
+Persistent=true
+Unit=codex-reset-poll.service
+
+[Install]
+WantedBy=timers.target

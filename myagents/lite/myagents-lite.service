@@ -1,0 +1,18 @@
+[Unit]
+Description=MyAgents Lite Plus (DeepSeek API + SQLite)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=myl
+Group=myl
+WorkingDirectory=/home/myl/my_website/myagents/lite
+# 复用网站根目录的私密配置文件；不要把真实 Key 提交到仓库。
+EnvironmentFile=-/home/myl/my_website/.env
+ExecStart=/home/myl/my_website/venv/bin/gunicorn -w 1 -b 127.0.0.1:5010 --timeout 300 app:app
+Restart=always
+RestartSec=3
+MemoryMax=350M
+
+[Install]
+WantedBy=multi-user.target

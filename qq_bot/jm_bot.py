@@ -8,15 +8,27 @@ import json
 import asyncio
 import aiohttp
 import hashlib
+import hmac
 import time
 import traceback
 import shutil
 from urllib.parse import quote
 from pathlib import Path
-from flask import Flask, request, jsonify, send_from_directory, render_template_string
+from dotenv import load_dotenv
+from flask import (
+    Flask,
+    jsonify,
+    redirect,
+    render_template_string,
+    request,
+    send_from_directory,
+    session,
+)
 from threading import Thread, Lock
 import logging
 from typing import Optional
+
+load_dotenv(Path(__file__).with_name(".env"))
 
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -24,9 +36,9 @@ logger = logging.getLogger(__name__)
 
 # ======================= 配置区域 =======================
 # QQ机器人配置 (从图片中获取)
-QQ_APP_ID = "102828452"
-QQ_APP_SECRET = "iLybErU7lP3hLzdHwbGvaFuaGwcIyeL2"
-QQ_TOKEN = "9A53HSnghbqP8X8M31yz8xHMyyBKFqcy"
+QQ_APP_ID = os.getenv("QQ_APP_ID", "")
+QQ_APP_SECRET = os.getenv("QQ_APP_SECRET", "")
+QQ_TOKEN = os.getenv("QQ_TOKEN", "")
 SERVER_HOST = "0.0.0.0"
 SERVER_PORT = 5003
 # 你的服务器域名
@@ -45,6 +57,21 @@ DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # ======================= Flask 应用 =======================
 app = Flask(__name__)
+JM_VIEWER_PASSWORD = os.getenv("JM_VIEWER_PASSWORD", "")
+JM_SESSION_SECRET = os.getenv("JM_SESSION_SECRET", "")
+JM_URL_PREFIX = os.getenv("JM_URL_PREFIX", "").rstrip("/")
+if not JM_VIEWER_PASSWORD or not JM_SESSION_SECRET:
+    raise RuntimeError("JM_VIEWER_PASSWORD and JM_SESSION_SECRET must be configured")
+
+app.config.update(
+    SECRET_KEY=JM_SESSION_SECRET,
+    SESSION_COOKIE_NAME="jm_viewer_session",
+    SESSION_COOKIE_PATH=JM_URL_PREFIX or "/",
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=True,
+)
+
 
 # 模拟 Redis（本地测试用）
 class MockRedis:
@@ -421,6 +448,11 @@ def download_jm_album(album_id: str, max_images: int = 3) -> dict:
         return {"success": False, "error": str(e)}
 
 # ======================= QQ 机器人 API =======================
+try:
+    from .qq_errors import read_api_response
+except ImportError:
+    from qq_errors import read_api_response
+
 class QQBotAPI:
     """QQ开放平台机器人API"""
     
@@ -448,7 +480,7 @@ class QQBotAPI:
         
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=data) as resp:
-                result = await resp.json()
+                result = await read_api_response(resp, url, (self.app_secret, self.access_token))
                 if "access_token" in result:
                     self.access_token = result["access_token"]
                     self.token_expires = time.time() + int(result.get("expires_in", 7200)) - 60
@@ -478,8 +510,9 @@ class QQBotAPI:
         
         async with aiohttp.ClientSession() as session:
             async with session.post(url, headers=headers, json=data) as resp:
-                result = await resp.json()
-                logger.info(f"发送群消息结果: {result}")
+                result = await read_api_response(resp, url, (self.app_secret, self.access_token))
+                if resp.status >= 400 or result.get("code", 0):
+                    raise RuntimeError(f"QQ 发送失败，HTTP {resp.status}，code={result.get('code')}")
                 return result
 
     async def send_c2c_message(self, user_openid: str, content: str, msg_id: Optional[str] = None, msg_seq: Optional[int] = None):
@@ -504,8 +537,9 @@ class QQBotAPI:
 
         async with aiohttp.ClientSession() as session:
             async with session.post(url, headers=headers, json=data) as resp:
-                result = await resp.json()
-                logger.info(f"发送私聊消息结果: {result}")
+                result = await read_api_response(resp, url, (self.app_secret, self.access_token))
+                if resp.status >= 400 or result.get("code", 0):
+                    raise RuntimeError(f"QQ 发送失败，HTTP {resp.status}，code={result.get('code')}")
                 return result
     
     async def upload_group_media(self, group_openid: str, file_type: int, url: str):
@@ -583,16 +617,110 @@ bot_api = QQBotAPI(QQ_APP_ID, QQ_APP_SECRET, QQ_TOKEN)
 
 # ======================= Flask 路由 =======================
 
+AUTH_PAGE = """
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>漫画查看器 · 访问验证</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            min-height: 100vh; margin: 0; padding: 24px;
+            display: grid; place-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+            color: #eef2ff; background: linear-gradient(145deg, #111827, #1e1b4b);
+        }
+        .auth-card {
+            width: min(420px, 100%); padding: 36px;
+            border: 1px solid rgba(255,255,255,.12); border-radius: 20px;
+            background: rgba(255,255,255,.08); box-shadow: 0 24px 70px rgba(0,0,0,.34);
+            backdrop-filter: blur(14px);
+        }
+        h1 { margin: 0 0 10px; font-size: 28px; }
+        p { margin: 0 0 24px; color: #c7d2fe; line-height: 1.6; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; }
+        input {
+            width: 100%; padding: 13px 14px; border: 1px solid #64748b;
+            border-radius: 10px; background: #fff; color: #111827; font-size: 16px;
+        }
+        input:focus { outline: 3px solid rgba(129,140,248,.32); border-color: #818cf8; }
+        button {
+            width: 100%; margin-top: 16px; padding: 13px; border: 0; border-radius: 10px;
+            background: #6366f1; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+        }
+        button:hover { background: #4f46e5; }
+        .error { margin: 14px 0 0; color: #fecaca; }
+        .back { display: inline-block; margin-top: 20px; color: #c7d2fe; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <main class="auth-card">
+        <h1>漫画查看器</h1>
+        <p>请输入访问密码后继续。</p>
+        <form method="post">
+            <input type="hidden" name="next" value="{{ next_path }}">
+            <label for="password">访问密码</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
+            <button type="submit">进入查看器</button>
+        </form>
+        {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+        <a class="back" href="/">← 返回项目主页</a>
+    </main>
+</body>
+</html>
+"""
+
+
+def _public_path(internal_path: str) -> str:
+    if not internal_path.startswith("/") or internal_path.startswith("//"):
+        internal_path = "/"
+    return f"{JM_URL_PREFIX}{internal_path}"
+
+
+@app.before_request
+def require_viewer_password():
+    if request.endpoint in {"jm_auth", "qq_callback", "archive_download"}:
+        return None
+    if session.get("jm_viewer_authorized"):
+        return None
+
+    next_path = request.full_path.rstrip("?")
+    auth_url = f"{_public_path('/auth')}?next={quote(next_path, safe='')}"
+    return redirect(auth_url)
+
+
+@app.route('/auth', methods=['GET', 'POST'])
+def jm_auth():
+    next_path = request.values.get("next", "/")
+    if not next_path.startswith("/") or next_path.startswith("//"):
+        next_path = "/"
+
+    error = None
+    status = 200
+    if request.method == "POST":
+        supplied_password = request.form.get("password", "")
+        if hmac.compare_digest(supplied_password, JM_VIEWER_PASSWORD):
+            session["jm_viewer_authorized"] = True
+            return redirect(_public_path(next_path))
+        error = "密码错误，请重新输入。"
+        status = 401
+
+    return render_template_string(
+        AUTH_PAGE, next_path=next_path, error=error
+    ), status
+
 @app.route('/')
 def index():
-    """首页 - 显示JM查看功能说明"""
+    """首页 - 显示漫画查看功能说明"""
     html = """
     <!DOCTYPE html>
-    <html lang="zh-CN">
+    <html lang="zh-CN" data-jm-authorized="true">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>JM漫画查看器</title>
+        <title>漫画查看器</title>
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body {
@@ -647,7 +775,7 @@ def index():
     </head>
     <body>
         <div class="container">
-            <h1>📚 JM漫画查看器</h1>
+            <h1>📚 漫画查看器</h1>
             
             <div class="card">
                 <h2>🤖 QQ机器人使用方法</h2>
@@ -661,7 +789,7 @@ def index():
                 <p>在下方输入漫画ID即可在线查看：</p>
                 <div class="search-box">
                     <input type="text" id="albumId" placeholder="输入漫画ID，例如：123456">
-                    <button onclick="viewAlbum()" id="searchBtn">查看</button>
+                    <button onclick="viewAlbum()" id="searchBtn" data-analytics-id="comic-open">查看</button>
                 </div>
                 <div id="loadingStatus" style="display:none; margin-top:15px; padding:15px; background:rgba(0,212,255,0.1); border-radius:8px;">
                     <div style="display:flex; align-items:center; gap:10px;">
@@ -678,7 +806,7 @@ def index():
                 <p>• 提供网页端完整阅读体验</p>
             </div>
             
-            <p class="footer">© 2026 JM漫画查看器</p>
+            <p class="footer">© 2026 漫画查看器</p>
         </div>
         
         <style>
@@ -696,6 +824,7 @@ def index():
             async function viewAlbum() {
                 const id = document.getElementById('albumId').value.trim();
                 if (!id) { alert('请输入漫画ID'); return; }
+                if (!/^\d{1,16}$/.test(id)) { alert('请输入有效的数字漫画ID'); return; }
                 
                 const btn = document.getElementById('searchBtn');
                 const loading = document.getElementById('loadingStatus');
@@ -708,6 +837,9 @@ def index():
                 
                 try {
                     // 使用相对路径，适配 /jm/ 前缀
+                    document.dispatchEvent(new CustomEvent('comic:opened', {
+                        detail: { comicId: id, source: 'viewer_search' },
+                    }));
                     window.location.href = 'view/' + id;
                 } catch(e) {
                     statusText.textContent = '获取失败: ' + e.message;
@@ -830,7 +962,7 @@ def view_album(album_id):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{current_chapter["name"] or ('JM' + album_id)} - JM漫画查看器</title>
+        <title>{current_chapter["name"] or ('JM' + album_id)} - 漫画查看器</title>
         <style>
             * {{ margin: 0; padding: 0; box-sizing: border-box; }}
             body {{
@@ -1143,232 +1275,14 @@ def api_preview(album_id):
     return jsonify(payload)
 
 # ======================= QQ 机器人 Webhook =======================
+from qq_service import install
+try:
+    from .web_cache import install_web_cache
+except ImportError:
+    from web_cache import install_web_cache
+shared_manga_cache = install_web_cache(globals())
 
-@app.route('/qq/callback', methods=['POST', 'GET'])
-def qq_callback():
-    """QQ机器人回调接口"""
-    if request.method == 'GET':
-        # URL验证 - QQ开放平台会发送验证请求
-        logger.info(f"收到GET验证请求: {request.args}")
-        # 返回 challenge 参数进行验证
-        return request.args.get('challenge', request.args.get('echostr', 'OK'))
-    
-    try:
-        data = request.json
-        logger.info(f"收到QQ回调: {json.dumps(data, ensure_ascii=False)}")
-
-        if not isinstance(data, dict):
-            return jsonify({"status": "ok"})
-        
-        # 处理 URL 验证 (POST方式)
-        if data and data.get('op') == 13:
-            # 这是回调地址验证请求
-            d = data.get('d', {})
-            plain_token = d.get('plain_token', '')
-            event_ts = d.get('event_ts', '')
-            
-            # 使用 ed25519 签名验证 (QQ开放平台要求)
-            # 简单实现：直接返回 plain_token
-            logger.info(f"回调验证请求: plain_token={plain_token}, event_ts={event_ts}")
-            
-            # 计算签名 (需要 ed25519)
-            try:
-                from nacl.signing import SigningKey
-                import binascii
-                import base64
-                
-                # 使用教程逻辑：secret 不足 32 字节则重复，超过则截断
-                secret = QQ_APP_SECRET.strip()
-                while len(secret) < 32:
-                    secret += secret
-                secret = secret[:32]
-
-                signing_key = SigningKey(secret.encode("utf-8"))
-
-                # 签名内容：event_ts + plain_token（教程示例）
-                msg = f"{event_ts}{plain_token}".encode("utf-8")
-                signed = signing_key.sign(msg)
-                signature = binascii.hexlify(signed.signature).decode()
-
-                logger.info("签名生成: order=event_ts_first, encoding=hex")
-                
-                return jsonify({
-                    "plain_token": plain_token,
-                    "signature": signature
-                })
-            except ImportError:
-                # 如果没有 nacl 库，返回简单响应
-                logger.warning("nacl库未安装，使用简单验证")
-                return jsonify({
-                    "plain_token": plain_token,
-                    "signature": ""
-                })
-        
-        # 处理消息事件
-        if data.get('op') == 0:  # 消息事件
-            event_type = data.get('t')
-            event_data = data.get('d', {})
-            
-            if event_type == 'GROUP_AT_MESSAGE_CREATE':
-                # 群@消息
-                asyncio.run(handle_group_message(event_data))
-            elif event_type == 'C2C_MESSAGE_CREATE':
-                # 私聊消息
-                asyncio.run(handle_private_message(event_data))
-        
-        return jsonify({"status": "ok"})
-    except Exception as e:
-        logger.error(f"处理回调出错: {e}")
-        traceback.print_exc()
-        return jsonify({"status": "error", "message": str(e)})
-
-async def handle_group_message(event_data):
-    """处理群消息"""
-    content = event_data.get('content', '').strip()
-    group_openid = event_data.get('group_openid')
-    msg_id = event_data.get('id')
-    
-    logger.info(f"群消息: {content}, group: {group_openid}")
-    
-    # 帮助命令
-    if content in {"/help", "help", "/帮助", "帮助"}:
-        await send_help_message(bot_api.send_group_message, group_openid, msg_id)
-        return
-
-    # 检查是否是 /jm 命令
-    if content.startswith('/jm ') or content.startswith('jm '):
-        album_id = content.split()[-1].strip()
-
-        # 移除可能的JM前缀
-        if album_id.upper().startswith('JM'):
-            album_id = album_id[2:]
-
-        if album_id.isdigit():
-            await bot_api.send_group_message(
-                group_openid,
-                f"📖 阅读链接：{SERVER_DOMAIN}/view/{album_id}",
-                msg_id
-            )
-            Thread(
-                target=run_async_in_thread,
-                args=(process_jm_request_common(bot_api.send_group_message, bot_api.send_group_rich_message, group_openid, album_id, msg_id, True),),
-                daemon=True
-            ).start()
-        else:
-            await bot_api.send_group_message(
-                group_openid,
-                "❌ 请输入正确的漫画ID，例如：/jm 123456",
-                msg_id
-            )
-        return
-
-    await send_default_message(bot_api.send_group_message, group_openid, msg_id)
-
-async def handle_private_message(event_data):
-    """处理私聊消息"""
-    content = event_data.get('content', '').strip()
-    user_openid = event_data.get('author', {}).get('user_openid') or event_data.get('author', {}).get('id')
-    msg_id = event_data.get('id')
-
-    logger.info(f"私聊消息: {content}, user: {user_openid}")
-
-    if not user_openid:
-        return
-
-    if content in {"/help", "help", "/帮助", "帮助"}:
-        await send_help_message(bot_api.send_c2c_message, user_openid, msg_id)
-        return
-
-    if content.startswith('/jm ') or content.startswith('jm '):
-        album_id = content.split()[-1].strip()
-        if album_id.upper().startswith('JM'):
-            album_id = album_id[2:]
-
-        if album_id.isdigit():
-            await bot_api.send_c2c_message(
-                user_openid,
-                f"📖 阅读链接：{SERVER_DOMAIN}/view/{album_id}",
-                msg_id
-            )
-            Thread(
-                target=run_async_in_thread,
-                args=(process_jm_request_common(bot_api.send_c2c_message, bot_api.send_c2c_rich_message, user_openid, album_id, msg_id, True),),
-                daemon=True
-            ).start()
-        else:
-            await bot_api.send_c2c_message(
-                user_openid,
-                "❌ 请输入正确的漫画ID，例如：/jm 123456",
-                msg_id
-            )
-        return
-
-    await send_default_message(bot_api.send_c2c_message, user_openid, msg_id)
-
-def run_async_in_thread(coro):
-    """在新线程中执行 async 协程，避免阻塞回调"""
-    try:
-        asyncio.run(coro)
-    except Exception as e:
-        logger.error(f"后台任务执行失败: {e}")
-        traceback.print_exc()
-
-async def send_help_message(send_func, target, msg_id: str):
-    await send_func(
-        target,
-        "可用指令：\n/jm 漫画ID  获取漫画预览\n例如：/jm 123456",
-        msg_id
-    )
-
-async def send_default_message(send_func, target, msg_id: str):
-    await send_func(
-        target,
-        "收到消息。如需帮助请输入 /help",
-        msg_id
-    )
-
-async def process_jm_request_common(send_text_func, send_rich_func, target: str, album_id: str, msg_id: str, cached_first: bool):
-    """处理JM漫画请求（群聊/私聊逻辑一致）"""
-    try:
-        payload = get_preview_payload(album_id)
-
-        if payload.get("success"):
-            preview_urls = payload.get("preview_images", [])
-            view_url = payload.get("view_url")
-            cached_tip = "(已缓存)" if payload.get("cached") else "(已下载)"
-
-            message = (
-                f"📚 {payload.get('title', 'JM' + album_id)} {cached_tip}\n\n"
-                f"🖼️ 预览图片 {len(preview_urls)} 张\n\n"
-                f"📖 完整阅读链接:\n{view_url}\n\n"
-                f"共 {payload.get('total_pages', 0)} 页"
-            )
-
-            if not cached_first:
-                await send_text_func(target, f"📖 阅读链接：{view_url}", msg_id)
-
-            if preview_urls:
-                try:
-                    await send_rich_func(target, "🖼️ 预览图片如下：", msg_id, preview_urls)
-                except Exception as e:
-                    logger.warning(f"预览图片发送失败，改为文字消息: {e}")
-                    await send_text_func(target, message, msg_id)
-            else:
-                await send_text_func(target, message, msg_id)
-        else:
-            await send_text_func(
-                target,
-                f"❌ 获取漫画失败: {payload.get('error', '未知错误')}",
-                msg_id
-            )
-    except Exception as e:
-        logger.error(f"处理JM请求出错: {e}")
-        traceback.print_exc()
-        await send_text_func(
-            target,
-            f"❌ 处理请求时出错: {str(e)}",
-            msg_id
-        )
+qq_executor = install(app, bot_api, QQ_APP_SECRET, SERVER_DOMAIN, DOWNLOAD_DIR / ".archives")
 
 # ======================= 启动服务 =======================
 

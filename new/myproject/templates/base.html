@@ -12,6 +12,7 @@
     <!-- ★ 新增：为子页面提供一个添加额外CSS的地方 ★ -->
     {% block extra_css %}{% endblock %}
     
+    <script>window.SCRIPT_ROOT = "{{ request.script_root }}";</script>
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -31,7 +32,6 @@
             </a>
             <nav>
                 <ul>
-    
                 </ul>
             </nav>
 

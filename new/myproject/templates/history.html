@@ -361,7 +361,7 @@
     }
 
     function requestHistoryMuscleData() {
-        fetch('/api/muscle_usage')
+        fetch(SCRIPT_ROOT + '/api/muscle_usage')
             .then((resp) => {
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 return resp.json();

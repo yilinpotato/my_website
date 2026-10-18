@@ -15,6 +15,7 @@
         .admin-avatar { border: 3px solid #FFD700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.7); }
         .admin-author { color: #E5B80B; font-weight: 900 !important; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
     </style>
+    <script>window.SCRIPT_ROOT = "{{ request.script_root }}";</script>
 </head>
 <body>
     <header class="navbar">
@@ -140,7 +141,7 @@
             try {
                 let messages = [];
                 try {
-                    const messagesResponse = await fetch('/api/messages');
+                    const messagesResponse = await fetch(SCRIPT_ROOT + '/api/messages');
                     if (!messagesResponse.ok) throw new Error('获取留言失败');
                     messages = await messagesResponse.json();
                 } catch (e) {
@@ -150,7 +151,7 @@
 
                 if (isUserLoggedIn) {
                     try {
-                        const adminResponse = await fetch('/api/check_admin');
+                        const adminResponse = await fetch(SCRIPT_ROOT + '/api/check_admin');
                         if (adminResponse.ok) { isViewerAdmin = (await adminResponse.json()).isAdmin; }
                     } catch (e) { console.warn('检查管理员状态失败'); }
                 }
@@ -178,7 +179,7 @@
                 if (!content) return alert('留言内容不能为空！');
 
                 try {
-                    const response = await fetch('/api/messages', {
+                    const response = await fetch(SCRIPT_ROOT + '/api/messages', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ content: content })
@@ -205,7 +206,7 @@
             const messageId = card.dataset.id;
 
             if (btn.classList.contains('like-btn')) {
-                fetch(`/api/messages/${messageId}/like`, { method: 'POST' })
+                fetch(`${SCRIPT_ROOT}/api/messages/${messageId}/like`, { method: 'POST' })
                     .then(res => {
                         if(res.ok) {
                             const countSpan = btn.querySelector('.like-count');
@@ -216,7 +217,7 @@
                 const replyContent = prompt('请输入你的回复内容：');
                 if (replyContent && replyContent.trim()) {
                     try {
-                        const response = await fetch(`/api/messages/${messageId}/reply`, {
+                        const response = await fetch(`${SCRIPT_ROOT}/api/messages/${messageId}/reply`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ content: replyContent.trim() })
@@ -233,7 +234,7 @@
                 }
             } else if (btn.classList.contains('delete-btn')) {
                 if (!isViewerAdmin || !confirm('确定要删除这条留言吗？')) return;
-                fetch(`/api/messages/${messageId}`, { method: 'DELETE' })
+                fetch(`${SCRIPT_ROOT}/api/messages/${messageId}`, { method: 'DELETE' })
                    .then(res => {
                        if(res.ok) {
                            card.remove();

@@ -77,6 +77,7 @@
             box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2) !important;
         }
     </style>
+    <script>window.SCRIPT_ROOT = "{{ request.script_root }}";</script>
 </head>
 <body>
     <!-- 导航栏保持不变 -->
@@ -295,7 +296,7 @@
             }
 
             try {
-                const response = await fetch('/file-vault/check-key', {
+                const response = await fetch(SCRIPT_ROOT + '/file-vault/check-key', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ key: key })
