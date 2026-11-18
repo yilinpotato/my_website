@@ -42,7 +42,7 @@ QQ_TOKEN = os.getenv("QQ_TOKEN", "")
 SERVER_HOST = "0.0.0.0"
 SERVER_PORT = 5003
 # 你的服务器域名
-SERVER_DOMAIN = "https://potatoma.me/jm"  # 部署后的完整域名
+SERVER_DOMAIN = os.getenv("QQ_SERVER_DOMAIN", "https://mayilin.xyz/jm").rstrip("/")  # 部署后的完整域名
 
 # JM漫画下载配置（优先与网页端共用下载目录）
 DEFAULT_WEB_DOWNLOAD_DIR = Path(__file__).resolve().parents[1] / "new" / "myproject" / "static" / "manga"

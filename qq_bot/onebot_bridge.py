@@ -701,7 +701,7 @@ def main():
     root = Path(os.getenv('ONEBOT_DATA_DIR', '/home/myl/qq-companion'))
     root.mkdir(parents=True,exist_ok=True)
     with FileLock(root/'.bridge.lock', timeout=0):
-        bridge = Bridge(root, os.getenv('QQ_SERVER_DOMAIN','https://potatoma.me/jm'), os.getenv('ONEBOT_ACCESS_TOKEN',''))
+        bridge = Bridge(root, os.getenv('QQ_SERVER_DOMAIN','https://mayilin.xyz/jm'), os.getenv('ONEBOT_ACCESS_TOKEN',''))
         if not bridge.token:
             raise RuntimeError('ONEBOT_ACCESS_TOKEN is required')
         app = web.Application()
