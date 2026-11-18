@@ -60,11 +60,32 @@ class BotTests(unittest.TestCase):
 
     def test_reply_and_duplicate(self):
         event = {"op": 0, "t": "C2C_MESSAGE_CREATE", "d": {
-            "id": "message", "author": {"user_openid": "user"}, "content": "你好"}}
+            "id": "message", "author": {"user_openid": "user"}, "content": "help"}}
         self.assertEqual(self.post(event).status_code, 200)
         self.assertEqual(self.post(event).status_code, 200)
         self.executors[0].shutdown(wait=True)
         self.api.send_c2c_message.assert_awaited_once()
+
+    def test_plain_text_routes_to_chat_not_manga(self):
+        chat = self.app.extensions['qq_chat']
+        with patch.object(chat, 'answer', return_value={'reply':'你好，我是哈基米'}) as answer, \
+             patch('qq_bot.qq_service.build_archive') as download:
+            self.post({'op':0,'t':'GROUP_AT_MESSAGE_CREATE','d':{
+                'id':'chat-message','group_openid':'group','author':{'member_openid':'member'},
+                'content':'<@!bot> 你好'}})
+            for executor in self.executors: executor.shutdown(wait=True)
+            answer.assert_called_once_with('你好','GROUP_AT_MESSAGE_CREATE:group:member','member')
+            download.assert_not_called()
+            self.assertEqual(self.api.send_group_message.call_args.args[1], '你好，我是哈基米')
+
+    def test_chat_picture_uses_media_sender(self):
+        with patch.object(self.app.extensions['qq_chat'], 'answer', return_value={'reply':'给你','image':b'image'}), \
+             patch('qq_bot.qq_service.send_chat_image',new_callable=AsyncMock) as media:
+            self.post({'op':0,'t':'C2C_MESSAGE_CREATE','d':{
+                'id':'chat-image','author':{'user_openid':'member'},'content':'发个表情'}})
+            for executor in self.executors: executor.shutdown(wait=True)
+            media.assert_awaited_once()
+            self.api.send_c2c_message.assert_not_awaited()
 
     def test_group_archive_and_download(self):
         path = self.root / "123456.zip"
@@ -91,10 +112,13 @@ class BotTests(unittest.TestCase):
         self.assertEqual(self.client.get("/archive/" + pending).status_code, 202)
 
     def test_modes(self):
-        for text in ['123456', '/jm 123456', '网页 123456', '123456 只发网页', '搜索 123456', '/search 123456']:
+        for text in ['web 123456', 'WEB 123456', '123456', '/jm 123456', '网页 123456', '123456 只发网页', '搜索 123456', '/search 123456']:
             self.assertEqual(parse_command(text), ('123456', 'web', 1))
         self.assertEqual(parse_command('<@!bot> 发压缩包 123456'), ('123456', 'zip', 1))
         self.assertEqual(parse_command('/jm 123456 图片 4'), ('123456', 'images', 4))
+        self.assertEqual(parse_command('zip 123456'), ('123456', 'zip', 1))
+        self.assertEqual(parse_command('img 123456'), ('123456', 'images', 1))
+        self.assertEqual(parse_command('img 123456 4'), ('123456', 'images', 4))
         for text in ['图片 123456 0', 'zip 123456 4', '123456 zip web', '图片 ../12']:
             self.assertIsNone(parse_command(text)[0])
 
@@ -130,7 +154,8 @@ class BotTests(unittest.TestCase):
     def test_help_discloses_requested_viewer_password(self):
         from qq_bot.qq_service import HELP
         self.assertIn('EXAMPLE_VIEWER_PASSWORD', HELP)
-        self.assertIn('搜索 123456', HELP)
+        for command in ['help', 'web 123456', 'zip 123456', 'img 123456', 'img 123456 4']:
+            self.assertIn(command, HELP)
 
     def test_image_mode_never_sends_zip_or_web(self):
         path = self.root / '123456.zip'
@@ -168,7 +193,47 @@ class BotTests(unittest.TestCase):
         self.assertEqual([base64.b64decode(body['file_data']) for url, body in calls if url.endswith('/files')], [b'2', b'3', b'4'])
         messages = [body for url, body in calls if url.endswith('/messages')]
         self.assertEqual([body['msg_seq'] for body in messages], [1, 2, 3])
-        self.assertIn('图片 123 5', messages[-1]['content'])
+        self.assertIn('img 123 5', messages[-1]['content'])
+
+    def test_webp_and_gif_pages_are_sent_as_jpeg(self):
+        from io import BytesIO
+        from PIL import Image
+        import base64
+        path = self.root / 'formats.zip'
+        with zipfile.ZipFile(path, 'w') as archive:
+            for extension in ['webp', 'gif']:
+                buffer = BytesIO()
+                Image.new('RGB', (12, 16), 'red').save(buffer, format=extension.upper())
+                archive.writestr(f'123/1/page.{extension}', buffer.getvalue())
+        uploaded = []
+        class Response:
+            status = 200
+            async def __aenter__(self): return self
+            async def __aexit__(self, *args): pass
+            async def json(self): return {'file_info': 'image-token'}
+        class Session:
+            async def __aenter__(self): return self
+            async def __aexit__(self, *args): pass
+            def post(self, url, headers, json):
+                if url.endswith('/files'):
+                    uploaded.append(base64.b64decode(json['file_data']))
+                return Response()
+        with patch('qq_bot.qq_service.aiohttp.ClientSession', return_value=Session()):
+            api = SimpleNamespace(base_url='https://api.test', app_secret='secret', get_access_token=AsyncMock(return_value='token'))
+            asyncio.run(send_images(api, 'C2C_MESSAGE_CREATE', 'user', 'message', '123', path, 1))
+        self.assertEqual(len(uploaded), 2)
+        for payload in uploaded:
+            with Image.open(BytesIO(payload)) as image:
+                self.assertEqual(image.format, 'JPEG')
+                self.assertEqual(image.size, (12, 16))
+
+    def test_empty_image_archive_has_clear_error(self):
+        path = self.root / 'empty.zip'
+        with zipfile.ZipFile(path, 'w') as archive:
+            archive.writestr('readme.txt', 'no images')
+            archive.writestr('fake.jpg/', '')
+        with self.assertRaisesRegex(ValueError, '没有可发送的图片'):
+            asyncio.run(send_images(SimpleNamespace(base_url='https://api.test'), 'C2C_MESSAGE_CREATE', 'user', 'message', '123', path, 1))
 
     def test_complete_archive_and_failure(self):
         def construct(config):

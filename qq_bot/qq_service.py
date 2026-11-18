@@ -22,7 +22,7 @@ from nacl.exceptions import BadSignatureError
 from werkzeug.wsgi import ClosingIterator
 
 LOGIN_HINT = "网页登录密码：EXAMPLE_VIEWER_PASSWORD\n同一浏览器登录后会记住登录状态（有效期 365 天，访问自动续期）。"
-HELP = "help：查看帮助\nweb 123456：阅读链接\nzip 123456：发送 ZIP\nimg 123456：发送前 3 张图片\nimg 123456 4：从第 4 页继续\n直接发送漫画号也可获取阅读链接。\n" + LOGIN_HINT
+HELP = "蓝色大肥鱼 / 大肥鱼 / DeepSeek\n官方机器人群聊需 @；账号模式可点名或引用我。\n搜索 关键词：联网搜索\n搜图 关键词：找普通图片\n表情包 开心：从 QQ 表情库选图\n大肥鱼，发一张无语的二次元表情：按要求选图\n同步QQ表情：账号模式更新收藏表情\n收藏表情 标签：账号模式引用图片收藏\n清空记忆：清除当前会话\nhelp：查看帮助\nweb 123456：漫画阅读链接\nzip 123456：发送 ZIP\nimg 123456 4：从第 4 页发 3 张\n直接发送漫画号也可获取阅读链接。\n" + LOGIN_HINT
 
 
 def parse_command(content):
@@ -86,6 +86,25 @@ async def send_images(api, event, target, msg_id, album_id, archive, page):
                     'media': {'file_info': result['file_info']},
                 }) as response:
                     await read_api_response(response, '/messages', (token, api.app_secret))
+
+
+async def send_chat_image(api, event, target, msg_id, payload, caption, msg_seq=1):
+    scope = 'groups' if event == 'GROUP_AT_MESSAGE_CREATE' else 'users'
+    base = f'{api.base_url}/v2/{scope}/{target}'
+    token = await api.get_access_token()
+    headers = {'Authorization': f'QQBot {token}'}
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=40)) as session:
+        async with session.post(base+'/files', headers=headers, json={
+            'file_type': 1, 'file_data': base64.b64encode(payload).decode('ascii'), 'srv_send_msg': False,
+        }) as response:
+            media = await read_api_response(response, '/files', (token, api.app_secret))
+        if not media.get('file_info'):
+            raise ValueError('QQ 未返回图片凭据')
+        async with session.post(base+'/messages', headers=headers, json={
+            'msg_type': 7, 'content': caption, 'msg_id': msg_id, 'msg_seq': msg_seq,
+            'media': {'file_info': media['file_info']},
+        }) as response:
+            await read_api_response(response, '/messages', (token, api.app_secret))
 
 try:
     from .archives import build_archive, parse_album_id
@@ -190,6 +209,13 @@ async def send_archive(api, event, target, msg_id, url, album_id, archive):
 
 
 def install(app, api, secret, domain, root):
+    try:
+        from .chat_agent import ChatAgent
+    except ImportError:
+        from chat_agent import ChatAgent
+    chat = ChatAgent(root / '.chat', domain)
+    chat.persona_name='chen'
+    app.extensions['qq_chat'] = chat
     app.config.update(PERMANENT_SESSION_LIFETIME=timedelta(days=365), SESSION_REFRESH_EACH_REQUEST=True)
 
     @app.after_request
@@ -241,8 +267,37 @@ def install(app, api, secret, domain, root):
         album_id, mode, page = parse_command(content)
         diagnostic(data['id'], event, 'parsed', f'album={album_id or "none"}; target_present=True; content_length={len(content)}')
         if not album_id:
-            await send(target, HELP, data["id"], msg_seq=1)
-            diagnostic(data['id'], event, 'help_sent')
+            text = re.sub(r'<@!?[^>]+>', '', content).strip()
+            actor = data.get('author', {}).get('member_openid') or data.get('author', {}).get('user_openid')
+            if text.lower() in ('help', '/help', '帮助', '菜单', ''):
+                await send(target, HELP, data['id'], msg_seq=1)
+                diagnostic(data['id'], event, 'help_sent')
+                return
+            if not actor:
+                await send(target, '消息缺少用户身份，请稍后重试。', data['id'], msg_seq=1)
+                return
+            scope = event + ':' + target + ':' + actor
+            if text in ('清空记忆', '/reset'):
+                await asyncio.to_thread(chat.clear, scope)
+                await send(target, '已清空你在当前会话中的聊天记忆。', data['id'], msg_seq=1)
+                return
+            try:
+                try:
+                    from .agent_turn import turns
+                except ImportError:
+                    from agent_turn import turns
+                seq=1
+                async for result in turns(chat,text,scope,actor,max_parts=2):
+                    if result.get('reply'):
+                        await send(target,result['reply'],data['id'],msg_seq=seq)
+                        seq+=1
+                    if result.get('image'):
+                        await send_chat_image(api,event,target,data['id'],result['image'],'',msg_seq=seq)
+                        seq+=1
+                diagnostic(data['id'],event,'chat_sent','bounded agent turn completed')
+            except Exception as exc:
+                rid = diagnostic(data['id'], event, 'chat_failed', exc)
+                await send(target, f'聊天处理失败：{safe_message(exc, (secret,))}\n请求编号：{rid}', data['id'], msg_seq=2)
             return
         if mode == 'web':
             await send(target, f"{domain}/view/{album_id}\n{LOGIN_HINT}", data['id'], msg_seq=1)
@@ -326,7 +381,7 @@ def install(app, api, secret, domain, root):
         if request.method == "GET":
             if request.args.get("challenge"):
                 return request.args["challenge"]
-            return jsonify({"configured": bool(secret and api.app_id), "version": "20260929-command-modes-v2"})
+            return jsonify({"configured": bool(secret and api.app_id), "version": "20261022-flash-chat-v1"})
         if not secret or not api.app_id:
             return jsonify({"error": "机器人凭据未配置"}), 503
         raw = request.get_data()
@@ -372,6 +427,16 @@ def install(app, api, secret, domain, root):
                 db.execute('DELETE FROM events WHERE id=?',(key,))
             return jsonify(error='服务正在重载，请重试'),503
         return jsonify({"op": 12})
+
+    @app.get('/chat-sources/<token>')
+    def chat_sources(token):
+        sources = chat.load_sources(token)
+        if not sources:
+            return '来源链接无效或已过期', 404
+        return render_template_string('''<!doctype html><html lang="zh-CN"><meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1"><title>哈基米搜索来源</title>
+            <h1>搜索来源</h1>{% for s in sources %}<article><h2><a href="{{s.url}}" rel="noreferrer noopener">{{s.title}}</a></h2>
+            <p>{{s.summary or ''}}</p></article>{% endfor %}</html>''', sources=sources)
 
     @app.get("/archive/<token>")
     def archive_download(token):

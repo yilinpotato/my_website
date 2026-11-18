@@ -66,9 +66,42 @@ class BudgetTests(unittest.TestCase):
         self.assertEqual(post.call_args.kwargs['json']['max_tokens'],4096)
         self.assertFalse(post.call_args.kwargs['json']['stream'])
 
+    @patch.object(b.requests,'post')
+    def test_invalid_outer_json_is_friendly_and_keeps_reservation(self,post):
+        response=Mock(status_code=200,content=b'incomplete',headers={'Content-Type':'application/json'})
+        response.json.side_effect=ValueError('Expecting value')
+        post.return_value=response
+        with self.assertRaises(b.UpstreamResponseError) as caught:
+            b.completion('dummy',{'messages':[{'role':'user','content':'hi'}]},'study')
+        self.assertNotIn('Expecting value',str(caught.exception))
+        with b.connect() as c:
+            self.assertGreater(c.execute('SELECT SUM(amount) FROM calls').fetchone()[0],0)
+
     def test_untrusted_forwarding(self):
         with self.app.test_request_context('/',environ_base={'REMOTE_ADDR':'203.0.113.2'},headers={'X-Real-IP':'8.8.8.8'}):
             self.assertEqual(b.identity(),b.hashlib.sha256(b'203.0.113.2').hexdigest())
+
+    def test_service_identity_is_scoped_and_separate_from_ip(self):
+        original = b.identity()
+        with b.service_identity('qqbot', 'sender-a'):
+            first = b.identity()
+            self.assertNotEqual(first, original)
+        self.assertEqual(b.identity(), original)
+        with b.service_identity('qqbot', 'sender-b'):
+            self.assertNotEqual(b.identity(), first)
+        with self.assertRaises(b.BudgetExceeded):
+            with b.service_identity('untrusted', 'sender'): pass
+
+    def test_qq_image_budget_is_bounded_and_rejects_public_images(self):
+        import base64
+        image={'role':'user','content':[{'type':'image_url','image_url':{
+            'url':'data:image/jpeg;base64,'+base64.b64encode(b'\xff\xd8\xfftest').decode(),'detail':'low'}}]}
+        with self.assertRaises(b.BudgetExceeded): b.input_token_bound([image])
+        with b.service_identity('qqbot','actor'):
+            self.assertGreaterEqual(b.input_token_bound([image]),1024+1280)
+            with self.assertRaises(b.BudgetExceeded):b.input_token_bound([image]*5)
+            image['content'][0]['image_url']['url']='https://example.org/image.jpg'
+            with self.assertRaises(b.BudgetExceeded):b.input_token_bound([image])
 
     def test_429_even_if_endpoint_catches_error(self):
         @self.app.get('/fail')

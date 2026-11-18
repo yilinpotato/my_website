@@ -10,7 +10,10 @@ import json
 import os
 import sqlite3
 import uuid
+import base64
+import logging
 from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -22,6 +25,20 @@ GLOBAL_LIMIT = 3_000_000_000
 PERSON_LIMIT = 500_000_000
 # Nano-CNY per token: input hit 0.04/M, miss 2/M, output 8/M.
 HIT, MISS, OUTPUT = 40, 2000, 8000
+_service_person = ContextVar('site_budget_service_person', default=None)
+
+
+@contextmanager
+def service_identity(service, subject):
+    """Trusted internal callers only; never populate from an HTTP header/body."""
+    if service != 'qqbot' or not isinstance(subject, str) or not subject:
+        raise BudgetExceeded('无效服务身份。')
+    person = hashlib.sha256((service + ':' + subject).encode()).hexdigest()
+    token = _service_person.set(person)
+    try:
+        yield
+    finally:
+        _service_person.reset(token)
 
 
 class BudgetExceeded(RuntimeError):
@@ -29,6 +46,10 @@ class BudgetExceeded(RuntimeError):
         super().__init__(message)
         if has_request_context():
             g.budget_error = message
+
+
+class UpstreamResponseError(RuntimeError):
+    pass
 
 
 def install(app):
@@ -60,6 +81,8 @@ def day_now():
 
 
 def identity():
+    if _service_person.get() is not None:
+        return _service_person.get()
     if not has_request_context():
         raise BudgetExceeded('缺少访问者身份，已停止 API 调用。')
     # Do not trust caller-supplied forwarded headers on non-loopback requests.
@@ -81,6 +104,10 @@ def connect():
             id TEXT PRIMARY KEY, day TEXT NOT NULL, person TEXT NOT NULL,
             amount INTEGER NOT NULL, status TEXT NOT NULL, project TEXT NOT NULL)''')
         c.execute('CREATE INDEX IF NOT EXISTS calls_day ON calls(day,person)')
+        c.execute('''CREATE TABLE IF NOT EXISTS usage_details (
+            call_id TEXT PRIMARY KEY, model TEXT, purpose TEXT, thinking INTEGER,
+            prompt_tokens INTEGER, completion_tokens INTEGER, cache_hit_tokens INTEGER,
+            reasoning_tokens INTEGER, key_fingerprint TEXT, recorded_at TEXT)''')
         yield c
         c.commit()
     except BaseException:
@@ -96,10 +123,13 @@ def reserve(person, amount, project, day=None):
         c.execute('BEGIN IMMEDIATE')
         total = c.execute('SELECT COALESCE(SUM(amount),0) FROM calls WHERE day=?', (day,)).fetchone()[0]
         personal = c.execute('SELECT COALESCE(SUM(amount),0) FROM calls WHERE day=? AND person=?', (day,person)).fetchone()[0]
-        if total + amount > GLOBAL_LIMIT:
-            raise BudgetExceeded('全站今日 3 元 AI 额度已用完或不足以完成本次请求，请北京时间明日零点后再试。')
-        if personal + amount > PERSON_LIMIT:
-            raise BudgetExceeded('您今日 0.5 元 AI 额度已用完或不足以完成本次请求，请北京时间明日零点后再试。')
+        # QQ's temporary test ceiling applies only to authenticated service calls.
+        qq_test = project == 'qqbot' and bool(_service_person.get())
+        total_limit = int(os.getenv('QQ_TEST_GLOBAL_NCNY', GLOBAL_LIMIT)) if qq_test else GLOBAL_LIMIT
+        person_limit = int(os.getenv('QQ_TEST_PERSON_NCNY', PERSON_LIMIT)) if qq_test else PERSON_LIMIT
+        for kind,used,limit in [('全站',total,total_limit),('个人',personal,person_limit)]:
+            if used + amount > limit:
+                raise BudgetExceeded(f'{kind}日预算不足：已用及预留 ¥{used/1e9:.4f}，本次需预留 ¥{amount/1e9:.4f}，上限 ¥{limit/1e9:.2f}；北京时间零点重置。')
         token = uuid.uuid4().hex
         c.execute('INSERT INTO calls VALUES (?,?,?,?,?,?)', (token,day,person,amount,'reserved',project))
     return token
@@ -119,7 +149,42 @@ def usage_cost(usage):
     return hit * HIT + (prompt-hit) * MISS + output * OUTPUT
 
 
-def completion(api_key, payload, project, timeout=100):
+def input_token_bound(messages):
+    total, images = 1024, 0
+    for message in messages:
+        content = message.get('content')
+        if message.get('role') not in (('system','user','assistant','tool') if _service_person.get() else ('system','user','assistant')):
+            raise BudgetExceeded('无效消息角色。')
+        if _service_person.get():
+            total += len(json.dumps(message.get('tool_calls',[]),ensure_ascii=False).encode('utf-8'))
+            total += len(str(message.get('reasoning_content') or '').encode('utf-8'))
+        if isinstance(content,str):
+            total += len(content.encode('utf-8')) + 256
+            continue
+        if not _service_person.get() or message.get('role')!='user' or not isinstance(content,list):
+            raise BudgetExceeded('仅支持文本请求，已停止 API 调用。')
+        total += 256
+        for block in content:
+            if block.get('type')=='text' and isinstance(block.get('text'),str):
+                total += len(block['text'].encode('utf-8'))+256
+            elif block.get('type')=='image_url':
+                url=block.get('image_url',{}).get('url','')
+                if not url.startswith('data:image/jpeg;base64,') or len(url)>1_400_000:
+                    raise BudgetExceeded('仅允许受控的小型内嵌图片。')
+                try: raw=base64.b64decode(url.split(',',1)[1],validate=True)
+                except (ValueError,TypeError): raise BudgetExceeded('图片编码无效。')
+                if not raw.startswith(b'\xff\xd8\xff'):
+                    raise BudgetExceeded('图片格式无效。')
+                images += 1
+                if images>4: raise BudgetExceeded('单次最多处理 4 张图片。')
+                # Official Vision docs: <=1024 tokens/image; add framing allowance.
+                total += 1280
+            else:
+                raise BudgetExceeded('不支持的消息内容。')
+    return total
+
+
+def completion(api_key, payload, project, timeout=100, purpose='unspecified'):
     """Reserve worst-case cost atomically before any network activity.
 
     Unknown/timeout/invalid usage keeps the reservation, including after restart.
@@ -129,20 +194,22 @@ def completion(api_key, payload, project, timeout=100):
     if now.hour == 23 and now.minute >= 57:
         raise BudgetExceeded('每日额度正在结算，请北京时间零点后再试。')
     messages = payload.get('messages')
-    if not isinstance(messages, list) or not messages or any(
-        m.get('role') not in ('system','user','assistant') or not isinstance(m.get('content'), str)
-        for m in messages
-    ):
-        raise BudgetExceeded('仅支持文本请求，已停止 API 调用。')
+    if not isinstance(messages,list) or not messages or any(not isinstance(m,dict) for m in messages):
+        raise BudgetExceeded('无效消息请求。')
     payload = dict(payload)
+    thinking = bool(_service_person.get()) and project == 'qqbot' and payload.get('thinking') == {'type':'enabled'}
+    payload.pop('reasoning_effort', None)
+    if thinking:
+        payload['reasoning_effort'] = 'low'
     payload.update(model='deepseek-flash', max_tokens=min(int(payload.get('max_tokens',4096)),4096),
-                   stream=False, thinking={'type':'disabled'})
+                   stream=False, thinking={'type':'enabled' if thinking else 'disabled'})
     if payload['max_tokens'] <= 0:
         raise BudgetExceeded('无效输出长度。')
     # UTF-8 bytes bound text BPE tokens; generous allowance for chat framing.
-    input_bound = sum(len(m['content'].encode('utf-8')) + 256 for m in messages) + 1024
-    if input_bound > 120_000:
-        raise BudgetExceeded('输入内容过长，请缩短后重试。')
+    input_bound = input_token_bound(messages) + len(json.dumps(payload.get('tools',[]),ensure_ascii=False).encode('utf-8'))
+    input_limit = int(os.getenv('QQ_TEST_INPUT_BOUND',120_000)) if project=='qqbot' and _service_person.get() else 120_000
+    if input_bound > input_limit:
+        raise BudgetExceeded(f'输入预算超限：估算上界 {input_bound}，上限 {input_limit}。')
     reserved = input_bound * MISS + payload['max_tokens'] * OUTPUT
     try:
         token = reserve(identity(), reserved, project)
@@ -154,11 +221,34 @@ def completion(api_key, payload, project, timeout=100):
     if response.status_code in (400,401,402,403,404,413,422,429):
         settle(token,0,'rejected')
     response.raise_for_status()
-    result = response.json()
+    try:
+        result = response.json()
+        if not isinstance(result,dict):
+            raise ValueError('non-object response')
+    except ValueError as exc:
+        fingerprint=hashlib.sha256(response.content).hexdigest()[:12]
+        logging.getLogger('site_budget').warning(
+            'upstream_response_invalid ref=%s status=%s content_type=%s bytes=%s offset=%s',
+            fingerprint,response.status_code,response.headers.get('Content-Type',''),
+            len(response.content),getattr(exc,'pos','unknown'))
+        # Billing is unknown: keep the reservation; do not retry a paid call blindly.
+        raise UpstreamResponseError(f'DeepSeek 接口返回数据不完整（HTTP {response.status_code}，响应编号 {fingerprint}），请稍后再试。') from exc
     try:
         cost = usage_cost(result['usage'])
     except (KeyError,ValueError,TypeError):
         # Missing billing data: retain upper bound instead of silently allowing more.
         return result
     settle(token, cost, 'settled')
+    usage = result['usage']
+    try:
+        with connect() as c:
+            c.execute('INSERT OR REPLACE INTO usage_details VALUES (?,?,?,?,?,?,?,?,?,?)',
+                      (token, payload['model'], str(purpose)[:64], int(thinking),
+                       int(usage['prompt_tokens']), int(usage['completion_tokens']),
+                       int(usage.get('prompt_cache_hit_tokens', 0)),
+                       (usage.get('completion_tokens_details') or {}).get('reasoning_tokens'),
+                       hashlib.sha256(api_key.encode()).hexdigest()[:12],
+                       datetime.now(ZoneInfo('Asia/Shanghai')).isoformat()))
+    except (sqlite3.Error, ValueError, TypeError):
+        logging.getLogger('site_budget').warning('usage_detail_write_failed call_id=%s', token)
     return result

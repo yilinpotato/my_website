@@ -1,0 +1,25 @@
+- id: persistent-bash
+  disabled: true
+- id: persistent-pwsh
+  disabled: true
+- id: tool-fs
+  disabled: true
+- id: tool-working-directory
+  disabled: true
+- id: session-log-deepseek
+  disabled: true
+- id: plugin-package-inventory-deepseek
+  disabled: true
+- insert:
+    - id: qq-mcp
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: qq
+        transport: stdio
+        command: !!js process.env.QQ_HARNESS_PYTHON
+        args: !!js [process.env.QQ_HARNESS_MCP]
+        env:
+          QQ_HARNESS_GATEWAY: !!js process.env.QQ_HARNESS_GATEWAY
+          QQ_HARNESS_TOKEN: !!js process.env.QQ_HARNESS_TOKEN
+        failOnStartupError: true
+        toolCallTimeoutMs: 150000
