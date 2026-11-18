@@ -1,1 +1,1 @@
-see https://potatoma.me/
+see https://mayilin.xyz
